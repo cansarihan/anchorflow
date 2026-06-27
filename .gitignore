@@ -1,0 +1,25 @@
+# Rust / Soroban
+target/
+**/*.rs.bk
+*.wasm
+.soroban/
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+*.tsbuildinfo
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.key
+identity.toml
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log
