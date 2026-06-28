@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "invoice-token",
     "lending-pool",
+    "payroll-stream",
 ]
 
 [workspace.package]
