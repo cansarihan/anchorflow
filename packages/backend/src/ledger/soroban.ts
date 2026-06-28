@@ -55,19 +55,24 @@ export class SorobanLedger implements LedgerAdapter {
     const prepared = await this.server.prepareTransaction(tx);
     prepared.sign(this.signer);
 
-    const sent = await this.server.sendTransaction(prepared);
+    // Geçici "TRY_AGAIN_LATER"/"DUPLICATE" durumlarında yeniden gönder.
+    let sent = await this.server.sendTransaction(prepared);
+    for (let i = 0; i < 5 && sent.status === "TRY_AGAIN_LATER"; i++) {
+      await sleep(2000);
+      sent = await this.server.sendTransaction(prepared);
+    }
     if (sent.status === "ERROR") {
       throw new Error(`tx submit error: ${JSON.stringify(sent.errorResult)}`);
     }
 
-    // Sonucu bekle.
+    // Sonucu bekle — testnet onayı birkaç ledger sürebilir (~5 sn/ledger).
     let result = await this.server.getTransaction(sent.hash);
-    for (let i = 0; i < 30 && result.status === "NOT_FOUND"; i++) {
-      await new Promise((r) => setTimeout(r, 1000));
+    for (let i = 0; i < 60 && result.status === "NOT_FOUND"; i++) {
+      await sleep(1500);
       result = await this.server.getTransaction(sent.hash);
     }
     if (result.status !== "SUCCESS") {
-      throw new Error(`tx failed: ${result.status}`);
+      throw new Error(`tx ${sent.hash} failed: ${result.status}`);
     }
     return {
       txHash: sent.hash,
@@ -203,6 +208,10 @@ export class SorobanLedger implements LedgerAdapter {
       xdr: tx.toXDR(),
     };
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 /** "USDC:GA..." veya "native" -> Asset */

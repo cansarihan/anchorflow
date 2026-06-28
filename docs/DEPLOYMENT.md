@@ -65,3 +65,27 @@ stellar contract asset deploy --asset USDC:<ADMIN> --source anchorflow --network
 `.env` doldurun (bkz. `.env.example`): `SIGNER_SECRET`, `INVOICE_CONTRACT_ID`,
 `LENDING_POOL_ID`, `ASSET_CONTRACT`. Backend otomatik `live` moduna geçer ve
 `SorobanLedger` üzerinden bu kontratları çağırır.
+
+**İmzalayıcı seçimi:** Backend tüm işlemleri tek anahtarla imzalar; bu yüzden
+imzalayıcı, USDC issuer'ı OLMAYAN bir hesap olmalı (issuer kendi varlığını SAC
+ile tutamaz). Demoda issuer=payer=lp=imzalayıcı kullanılabilir.
+
+### Canlı backend akışı — doğrulandı ✅
+
+Tüm akış HTTP API üzerinden `live` modda Stellar testnet'e sürüldü ve zincirde
+doğrulandı (100 USDC fatura):
+
+| HTTP çağrısı | On-chain sonuç |
+|--------------|----------------|
+| `POST /pool/deposit` | gerçek txHash, havuz likiditesi arttı |
+| `POST /invoices` | InvoiceToken on-chain mint (onchainId döner) |
+| `POST /invoices/:id/accept` | status `Accepted` |
+| `POST /invoices/:id/finance` | havuz→freelancer 85 USDC, kredi `Active` |
+| `POST /pay/:id/settle` | atomik repay; fatura `Paid`, kredi `Repaid`, havuza +2 fee |
+
+**Notlar (deneyimden):**
+- `@stellar/stellar-sdk` **≥16** gerekir — testnet artık protokol 23
+  (`TransactionMeta v4`) döndürüyor; eski SDK `"Bad union switch: 4"` ile çöker.
+- Testnet RPC onay gecikmesi nedeniyle bir işlem nadiren `NOT_FOUND` ile
+  zaman aşımına uğrayabilir; çağrıyı tekrarlamak çözer (`invoke()` 90 sn'ye kadar
+  poll eder ve `TRY_AGAIN_LATER` durumunda yeniden gönderir).
