@@ -42,7 +42,14 @@ cd packages/frontend && npm install && npm run dev
 
 6. **`/pool`** tekrar — likidite **10.020**'ye çıktı: **20 USDC = LP yield.**
 
+7. **`/cashout`** — freelancer USDC'sini yerel nakde çevirir: **Off-ramp başlat**
+   (anchor SEP-24 withdraw) → **Bankaya gönderildi** → `Tamamlandı`.
+   *"Anchor'lar bunu gerçek para yapan, başka zincirde olmayan parça."*
+
 > "Tek bir bankaya, tek bir SWIFT mesajına dokunmadan."
+
+**Tam döngü:** öde al (path-payment) → faturanı finance et → yerel nakde çevir
+(anchor) → LP gerçek yield kazanır.
 
 ---
 

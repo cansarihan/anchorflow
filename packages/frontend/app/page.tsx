@@ -16,16 +16,13 @@ export default function Home() {
           <h3>🧾 Freelancer</h3>
           <p>Fatura oluştur, ödeme link'i paylaş, faturana karşı avans çek.</p>
         </Link>
+        <Link href="/cashout" className="tile">
+          <h3>🏦 Yerel nakde çevir</h3>
+          <p>Stellar anchor (SEP-24) ile USDC'ni yerel banka/mobil paraya çek.</p>
+        </Link>
         <Link href="/pool" className="tile">
           <h3>💧 Likidite Sağlayıcı</h3>
           <p>Havuza USDC yatır, gerçek nakit-akışı destekli yield kazan.</p>
-        </Link>
-        <Link href="/invoice" className="tile">
-          <h3>⚡ Nasıl çalışır</h3>
-          <p>
-            Invoice → path-payment settlement → tokenize → anında avans → otomatik
-            kapanış.
-          </p>
         </Link>
       </div>
     </div>

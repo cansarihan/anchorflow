@@ -110,4 +110,35 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ lpAddress, amount }),
     }),
+
+  anchorStart: (input: {
+    kind: "deposit" | "withdraw";
+    asset: string;
+    amount: string;
+    account: string;
+  }) =>
+    req<AnchorTransaction>("/anchor/transactions", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  anchorComplete: (id: string) =>
+    req<AnchorTransaction>(`/anchor/transactions/${id}/complete`, {
+      method: "POST",
+    }),
 };
+
+export interface AnchorTransaction {
+  id: string;
+  kind: "deposit" | "withdraw";
+  asset: string;
+  amount: string;
+  account: string;
+  status:
+    | "incomplete"
+    | "pending_user_transfer_start"
+    | "pending_anchor"
+    | "completed";
+  interactiveUrl: string;
+  createdAt: string;
+}
