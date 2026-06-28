@@ -52,7 +52,9 @@ hiç ulaşmıyor.**
    yerine gerçek **nakit-akışı destekli getiri** kazanır.
 
 4. **Programlanabilir maaş akışı.** Uzak ekipler için Soroban sözleşmeleri
-   saniye-bazlı maaş akışı ve milestone escrow sağlar. *(Roadmap; mimaride hazır.)*
+   ledger-bazlı maaş akışı (lineer vesting) sağlar; katkıcı istediği an hak
+   ettiğini çeker, işveren iptal ederse fonlar adil bölünür. *(PayrollStream
+   kontratı testnet'te canlı.)*
 
 ---
 
@@ -132,7 +134,7 @@ Net, gösterilebilir gelir → **"revenue milestones"** için doğal yol.
 | 1 | MVP: invoice → financing (Testnet) | ✅ **Tamamlandı — canlı** |
 | 2 | Anchor off-ramp (SEP-24) entegrasyonu | ⏳ |
 | 3 | Lending hardening: default, partial repayment, oracle-fed FX | ⏳ |
-| 4 | Programlanabilir maaş akışı (streaming payroll) | ⏳ |
+| 4 | Programlanabilir maaş akışı (streaming payroll) | ✅ **Kontrat canlı** |
 | 5 | Mainnet pilot: çok-koridor, gerçek anchor'lar, ilk LP'ler & kullanıcı | ⏳ |
 
 ---

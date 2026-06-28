@@ -39,7 +39,8 @@ Invoice link → path-payment settlement → Soroban'da tokenize
 anchorflow/
 ├── contracts/            # Soroban (Rust)
 │   ├── invoice-token/    # Fatura RWA token kontratı
-│   └── lending-pool/     # Avans + LP yield kontratı
+│   ├── lending-pool/     # Avans + LP yield kontratı
+│   └── payroll-stream/   # Programlanabilir maaş akışı (vesting)
 ├── packages/
 │   ├── backend/          # Node + TS: tx orkestrasyon, indexer, anchor sim
 │   ├── frontend/         # Next.js: freelancer / pay / pool panelleri
@@ -65,7 +66,7 @@ stellar contract build
 
 ## Test & deploy durumu
 
-- **21/21 test geçiyor** — `contracts/` **10/10** (uçtan uca financing akışı dahil)
+- **27/27 test geçiyor** — `contracts/` **16/16** (financing akışı + payroll vesting)
   + `backend/` **11/11** (money util + sim ledger).
 - **Stellar Testnet'te canlı** ve tam akış zincirde doğrulandı — bkz.
   [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). 1.000 USDC fatura → 850 avans →
@@ -78,7 +79,7 @@ stellar contract build
 | 1 | MVP: invoice → financing (Testnet) | ✅ Tamamlandı (canlı) |
 | 2 | Anchor off-ramp (SEP-24) | ⏳ |
 | 3 | Lending hardening (default, oracle FX) | ⏳ |
-| 4 | Payroll streaming | ⏳ |
+| 4 | Payroll streaming | ✅ Kontrat canlı (testnet) |
 | 5 | Mainnet pilot | ⏳ |
 
 ---
