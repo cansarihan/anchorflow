@@ -11,6 +11,7 @@ AnchorFlow'un invoice-financing çekirdeği Stellar Testnet'e deploy edildi ve
 |---------|-------------|----------|
 | InvoiceToken | `CDVXKOEZ7ZVXUUKEGUAF4GTS6WZOT3LRTR7PNHSVTAS42DEJ2IHDO7S5` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CDVXKOEZ7ZVXUUKEGUAF4GTS6WZOT3LRTR7PNHSVTAS42DEJ2IHDO7S5) |
 | LendingPool | `CDFEEMA73R5H7IWQOOLUN4GM3FTE3B7I55CDNT7QI2EBRXOTQA7ILT3E` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CDFEEMA73R5H7IWQOOLUN4GM3FTE3B7I55CDNT7QI2EBRXOTQA7ILT3E) |
+| PayrollStream | `CBUTHZNJDLAMQT55GEX2ZCZQTWMQCAM7CIWRFFULZNJBA6ULJ5V7MZOM` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CBUTHZNJDLAMQT55GEX2ZCZQTWMQCAM7CIWRFFULZNJBA6ULJ5V7MZOM) |
 | USDC (SAC) | `CAW4MGEAUUFXCMU4TBBBKKNRFAOIELDIROL6ZJNOM6JDBECAOSUE2354` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CAW4MGEAUUFXCMU4TBBBKKNRFAOIELDIROL6ZJNOM6JDBECAOSUE2354) |
 
 Parametreler: avans oranı **%85**, financing fee **%2**.
@@ -32,6 +33,18 @@ Parametreler: avans oranı **%85**, financing fee **%2**.
 - Havuz: **10.020 USDC** (10.000 + 20 fee = LP yield), borrowed 0
 
 Rakamlar kontrat birim testleri, backend sim ve canlı zincirde **birebir aynı**.
+
+## PayrollStream — canlı doğrulanan akış (10 USDC, ~100 sn'lik akış)
+
+| Adım | On-chain sonuç |
+|------|----------------|
+| İşveren akış oluşturur | 10 USDC kontrata escrow (transfer event) |
+| Ledger'lar ilerler | lineer vesting: `vested` zamanla artar |
+| Süre dolunca `vested` | tam **10 USDC** |
+| Çalışan `withdraw` çağırır | kontrat→çalışan **10 USDC** transfer; stream `Completed` |
+
+İşveren erken `cancel` ederse hak edilen çalışana, kalan işverene döner
+(birim testleriyle de kanıtlı).
 
 ## Yeniden deploy
 
