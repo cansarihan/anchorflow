@@ -10,6 +10,7 @@ Next.js (App Router) üç panel: freelancer, müşteri ödeme, likidite sağlay�
 | `/` | Landing |
 | `/invoice` | Freelancer: fatura oluştur, kabul (demo), avans çek |
 | `/pay/[id]` | Müşteri: kur teklifi + öde (atomik kredi kapanışı) |
+| `/cashout` | Anchor off-ramp (SEP-24): USDC'yi yerel nakde çevir |
 | `/pool` | LP: havuz istatistikleri + likidite yatır |
 
 ## Çalıştırma
