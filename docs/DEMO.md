@@ -51,6 +51,14 @@ cd packages/frontend && npm install && npm run dev
 **Tam döngü:** öde al (path-payment) → faturanı finance et → yerel nakde çevir
 (anchor) → LP gerçek yield kazanır.
 
+### Bonus: programlanabilir maaş akışı (`/payroll`)
+
+> "Dağıtık ekipler için maaş, ay sonunu beklemeden saniye saniye akar."
+
+8. **`/payroll`** — çalışan adresi + tutar + süre gir, **Akış oluştur** (tutar
+   kontrata escrow edilir). **Vesting progress bar** canlı dolar; çalışan istediği
+   an **Hak edileni çek** ile çeker. İşveren iptal ederse fonlar adil bölünür.
+
 ---
 
 ## B) Canlı testnet demosu (zincirde gerçek)
