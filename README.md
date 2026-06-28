@@ -58,16 +58,19 @@ stellar contract build
 ./scripts/deploy_testnet.sh
 ```
 
-## Test durumu
+## Test & deploy durumu
 
-`contracts/`: **10/10 test geçiyor** — uçtan uca financing akışı dahil
-(deposit → borrow → repay → otomatik settlement → LP yield).
+- `contracts/`: **10/10 test geçiyor** — uçtan uca financing akışı dahil
+  (deposit → borrow → repay → otomatik settlement → LP yield).
+- **Stellar Testnet'te canlı** ve tam akış zincirde doğrulandı — bkz.
+  [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). 1.000 USDC fatura → 850 avans →
+  müşteri ödemesi → atomik kapanış → havuz 10.020 (LP yield 20).
 
 ## Yol haritası
 
 | # | Milestone | Durum |
 |---|-----------|-------|
-| 1 | MVP: invoice → financing (Testnet) | 🔨 Devam ediyor |
+| 1 | MVP: invoice → financing (Testnet) | ✅ Tamamlandı (canlı) |
 | 2 | Anchor off-ramp (SEP-24) | ⏳ |
 | 3 | Lending hardening (default, oracle FX) | ⏳ |
 | 4 | Payroll streaming | ⏳ |

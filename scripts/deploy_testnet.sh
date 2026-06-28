@@ -26,7 +26,7 @@ echo "  InvoiceToken: $INVOICE_ID"
 ADMIN=$(stellar keys address "$SOURCE")
 echo "▶ InvoiceToken.init(admin=$ADMIN)"
 stellar contract invoke --id "$INVOICE_ID" --source "$SOURCE" --network "$NETWORK" \
-  -- init --admin "$ADMIN"
+  --send=yes -- init --admin "$ADMIN"
 
 # USDC testnet SAC adresi env'den gelir; yoksa yeni bir test asset üretilebilir.
 ASSET="${ASSET_CONTRACT:?ASSET_CONTRACT env değişkeni gerekli (USDC testnet SAC adresi)}"
@@ -39,7 +39,7 @@ echo "  LendingPool: $POOL_ID"
 
 echo "▶ LendingPool.init(...)"
 stellar contract invoke --id "$POOL_ID" --source "$SOURCE" --network "$NETWORK" \
-  -- init \
+  --send=yes -- init \
   --admin "$ADMIN" \
   --asset "$ASSET" \
   --invoice_contract "$INVOICE_ID" \
@@ -48,7 +48,7 @@ stellar contract invoke --id "$POOL_ID" --source "$SOURCE" --network "$NETWORK" 
 
 echo "▶ InvoiceToken.set_pool($POOL_ID)"
 stellar contract invoke --id "$INVOICE_ID" --source "$SOURCE" --network "$NETWORK" \
-  -- set_pool --pool "$POOL_ID"
+  --send=yes -- set_pool --pool "$POOL_ID"
 
 echo ""
 echo "✅ Deploy tamam"
