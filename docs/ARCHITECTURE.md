@@ -1,55 +1,59 @@
-# AnchorFlow — Mimari & Proje Planı
+# AnchorFlow — Architecture & Project Plan
 
 **Author:** Can Sarıhan
 **Track:** Stellar Startup Track
-**Doküman:** MVP Mimarisi ve Yol Haritası
-**Versiyon:** 0.1 — MVP Çekirdeği: *Invoice → Financing* Tam Akışı
+**Document:** MVP Architecture and Roadmap
+**Version:** 0.1 — MVP Core: *Invoice → Financing* Full Flow
 
 ---
 
-## 1. Vizyon (Tek Cümle)
+## 1. Vision (One Sentence)
 
-> AnchorFlow, sınır ötesi çalışan bağımsız iş gücünün doğrulanabilir gelirini (faturalarını) zincir üstü krediye dönüştüren, Stellar-native bir finansal işletim katmanıdır.
+> AnchorFlow is a Stellar-native financial operating layer that turns the verifiable income (invoices) of the cross-border independent workforce into on-chain credit.
 
-AnchorFlow bir cüzdan değildir; **gelir altyapısıdır.** Bir freelancer, bağımsız ekip veya küçük dijital işletme; ödeme alır, para birimini dönüştürür ve **henüz tahsil edilmemiş faturasına karşı anında avans çeker.**
+AnchorFlow is not a wallet; it's **income infrastructure.** A freelancer,
+independent team, or small digital business gets paid, converts currency, and
+**draws an instant advance against an invoice that hasn't been collected yet.**
 
 ---
 
-## 2. MVP'nin Sınırı (Scope)
+## 2. MVP Scope
 
-Pitch'te dört yetenek anlatılır (cross-border ödeme, anchor on/off-ramp, invoice financing, payroll streaming). **MVP'de yalnızca tek bir bütünleşik akış uçtan uca çalışır:**
+The pitch describes four capabilities (cross-border payment, anchor on/off-ramp,
+invoice financing, payroll streaming). **In the MVP, only one integrated flow runs
+end to end:**
 
 ```
-Invoice link  →  path-payment ile çok-para-birimli ödeme  →  fatura Soroban'da tokenize
-                       →  lending pool'dan anında avans  →  müşteri ödeyince smart contract otomatik kapanış
+Invoice link  →  multi-currency payment via path payment  →  invoice tokenized on Soroban
+                       →  instant advance from the lending pool  →  smart contract auto-closes when the client pays
 ```
 
-### Kapsamda (MVP)
-- ✅ Fatura oluşturma + paylaşılabilir ödeme link'i
-- ✅ Stellar **path payment** ile çok para birimli settlement (DEX üzerinden FX)
-- ✅ Soroban **Invoice Token** kontratı (her fatura = bir RWA token)
-- ✅ Soroban **Lending Pool** kontratı (tek havuz, tek varlık — USDC testnet)
-- ✅ Avans çekme → müşteri ödemesi → otomatik geri ödeme (deterministik settlement)
-- ✅ LP (likidite sağlayıcı) yatırım/çekim ve yield gösterimi
+### In scope (MVP)
+- ✅ Invoice creation + shareable payment link
+- ✅ Multi-currency settlement via Stellar **path payments** (FX over the DEX)
+- ✅ Soroban **Invoice Token** contract (each invoice = one RWA token)
+- ✅ Soroban **Lending Pool** contract (single pool, single asset — USDC testnet)
+- ✅ Draw advance → client payment → automatic repayment (deterministic settlement)
+- ✅ LP (liquidity provider) deposit/withdraw and yield display
 
-### Kapsam dışı (sonraki milestone'lar)
-- ❌ Gerçek mainnet anchor (testnet sim ile gösterilir)
-- ❌ Payroll streaming (mimaride yer ayrılır, kodlanmaz)
-- ❌ Çok-koridorlu anchor routing engine
-- ❌ Oracle-fed FX risk modeli (basit sabit oran ile temsil edilir)
-- ❌ Gelişmiş default/likidasyon mekaniği (MVP'de basit kural)
+### Out of scope (later milestones)
+- ❌ Real mainnet anchor (shown with a testnet sim)
+- ❌ Payroll streaming (reserved in the architecture, not coded)
+- ❌ Multi-corridor anchor routing engine
+- ❌ Oracle-fed FX risk model (represented by a simple fixed rate)
+- ❌ Advanced default/liquidation mechanics (simple rule in the MVP)
 
 ---
 
-## 3. Sistem Mimarisi (Yüksek Seviye)
+## 3. System Architecture (High Level)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          FRONTEND (Next.js)                         │
 │   Freelancer Panel  │  Client Pay Page  │  LP / Pool Dashboard       │
-│        Freighter / Stellar Wallets Kit ile cüzdan bağlama            │
+│        Wallet connection via Freighter / Stellar Wallets Kit        │
 └───────────────┬─────────────────────────────────┬───────────────────┘
-                │ REST / RPC                       │ Cüzdan imza (client-side)
+                │ REST / RPC                       │ Wallet signing (client-side)
                 ▼                                  ▼
 ┌─────────────────────────────────┐   ┌───────────────────────────────┐
 │      BACKEND API (Node/TS)       │   │   STELLAR / SOROBAN NETWORK    │
@@ -69,64 +73,66 @@ Invoice link  →  path-payment ile çok-para-birimli ödeme  →  fatura Soroba
 └─────────────────────────────────┘
 ```
 
-**Tasarım ilkesi:** Para ve kredi mantığı **zincir üstünde** (Soroban), kullanıcı dostu metadata ve link yönetimi **zincir dışında** (DB) tutulur. Güven gerektiren her şey kontratta; UX kolaylığı backend'de.
+**Design principle:** Money and credit logic live **on chain** (Soroban), while
+user-friendly metadata and link management live **off chain** (DB). Anything that
+requires trust is in the contract; UX convenience is in the backend.
 
 ---
 
-## 4. Çekirdek Akış — Adım Adım
+## 4. Core Flow — Step by Step
 
-### Aşama A — Fatura oluşturma ve ödeme
-1. Freelancer panelde fatura oluşturur: tutar (örn. 1000 USDC), müşteri, vade (örn. 60 gün), kabul edilen ödeme para birimleri.
-2. Backend paylaşılabilir bir **ödeme link'i** üretir (`/pay/:invoiceId`).
-3. Müşteri link'i açar, kendi para biriminde/stablecoin'inde öder.
-4. Backend bir **path payment** oluşturur: müşterinin varlığı → Stellar DEX → freelancer'ın seçtiği varlık (~5 sn, sub-cent). FX, DEX üzerinden first-class operation olarak çözülür.
+### Phase A — Invoice creation and payment
+1. The freelancer creates an invoice in the panel: amount (e.g. 1000 USDC), client, due date (e.g. 60 days), accepted payment currencies.
+2. The backend generates a shareable **payment link** (`/pay/:invoiceId`).
+3. The client opens the link and pays in their own currency/stablecoin.
+4. The backend builds a **path payment**: client's asset → Stellar DEX → the freelancer's chosen asset (~5s, sub-cent). FX is resolved over the DEX as a first-class operation.
 
-### Aşama B — Faturayı tokenize et (RWA)
-5. Müşteri faturayı "kabul" ettiğinde (MVP'de ödeme niyeti/onay imzası ile temsil edilir), backend `InvoiceToken.mint()` çağırır.
-6. Her fatura **benzersiz bir token** olarak basılır; sahibi freelancer'dır. Token metadata: tutar, vade, müşteri, durum (`Pending / Financed / Paid / Defaulted`).
+### Phase B — Tokenize the invoice (RWA)
+5. When the client "accepts" the invoice (in the MVP, represented by a payment-intent/approval signature), the backend calls `InvoiceToken.mint()`.
+6. Each invoice is minted as a **unique token** owned by the freelancer. Token metadata: amount, due date, client, status (`Pending / Financed / Paid / Defaulted`).
 
-### Aşama C — Avans çek (financing)
-7. Freelancer `LendingPool.borrow(invoiceTokenId)` çağırır.
-8. Pool, faturayı teminat olarak kilitler ve **fatura değerinin %80–90'ını** anında freelancer'a öder.
-9. Pool'daki likidite, dünya çapındaki LP'lerden gelir; faiz/iskonto onların yield'idir.
+### Phase C — Draw advance (financing)
+7. The freelancer calls `LendingPool.borrow(invoiceTokenId)`.
+8. The pool locks the invoice as collateral and instantly pays the freelancer **80–90% of the invoice value.**
+9. The pool's liquidity comes from LPs worldwide; the interest/discount is their yield.
 
-### Aşama D — Otomatik settlement
-10. Vade geldiğinde müşteri faturayı öder (ödeme link'i üzerinden).
-11. Ödeme pool'a yönlenir; smart contract **krediyi otomatik kapatır**, kalan tutarı freelancer'a aktarır, faiz LP'lere dağıtılır.
-12. Müşteri ödemezse: token `Defaulted` olur, MVP'de basit kural (teminat/risk fonu) ile temsil edilir; gerçek likidasyon Milestone 3.
+### Phase D — Automatic settlement
+10. At maturity, the client pays the invoice (via the payment link).
+11. The payment is routed to the pool; the smart contract **closes the loan automatically**, transfers the remainder to the freelancer, and distributes interest to the LPs.
+12. If the client doesn't pay: the token becomes `Defaulted`, represented in the MVP by a simple rule (collateral/risk fund); real liquidation is Milestone 3.
 
 ---
 
-## 5. Soroban Kontrat Tasarımı
+## 5. Soroban Contract Design
 
-### 5.1 `InvoiceToken` Kontratı
-Faturayı zincir üstünde tokenize eden RWA kontratı.
+### 5.1 `InvoiceToken` Contract
+The RWA contract that tokenizes the invoice on chain.
 
 **Storage:**
 ```
 Invoice {
   id: u64,
   issuer: Address,        // freelancer
-  payer: Address,         // müşteri (opsiyonel/known)
-  amount: i128,           // fatura tutarı (stroops/7-decimal)
-  asset: Address,         // settlement varlığı (USDC)
-  due_ledger: u32,        // vade (ledger sequence)
+  payer: Address,         // client (optional/known)
+  amount: i128,           // invoice amount (stroops/7-decimal)
+  asset: Address,         // settlement asset (USDC)
+  due_ledger: u32,        // due date (ledger sequence)
   status: Status,         // Pending | Accepted | Financed | Paid | Defaulted
-  doc_hash: BytesN<32>,   // off-chain fatura belgesinin hash'i (authenticity)
+  doc_hash: BytesN<32>,   // hash of the off-chain invoice document (authenticity)
 }
 ```
 
-**Fonksiyonlar:**
+**Functions:**
 - `mint(issuer, amount, asset, due, doc_hash) -> id`
-- `accept(id)` — müşteri kabul imzası (financing ön koşulu)
-- `mark_financed(id, pool)` — yalnızca LendingPool çağırabilir
+- `accept(id)` — client acceptance signature (financing precondition)
+- `mark_financed(id, pool)` — only the LendingPool can call
 - `mark_paid(id)` / `mark_defaulted(id)`
 - `get(id) -> Invoice`
 
-> **Authenticity (çekirdek güven problemi):** `doc_hash` ile off-chain fatura belgesi zincire bağlanır. MVP'de "accept" adımı müşteri onayını temsil eder. Sonraki milestone'da: e-imza, müşteri attestation, oracle doğrulaması.
+> **Authenticity (the core trust problem):** `doc_hash` binds the off-chain invoice document to the chain. In the MVP, the "accept" step represents client approval. In a later milestone: e-signature, client attestation, oracle verification.
 
-### 5.2 `LendingPool` Kontratı
-Fatura teminatına karşı avans veren ve LP yield dağıtan havuz.
+### 5.2 `LendingPool` Contract
+The pool that lends advances against invoice collateral and distributes LP yield.
 
 **Storage:**
 ```
@@ -134,9 +140,9 @@ Pool {
   asset: Address,             // USDC
   total_liquidity: i128,
   total_borrowed: i128,
-  advance_ratio: u32,         // örn. 8500 = %85
-  fee_bps: u32,               // financing iskonto/faiz
-  shares: Map<Address,i128>,  // LP payları
+  advance_ratio: u32,         // e.g. 8500 = 85%
+  fee_bps: u32,               // financing discount/interest
+  shares: Map<Address,i128>,  // LP shares
 }
 Loan {
   invoice_id: u64,
@@ -146,18 +152,21 @@ Loan {
 }
 ```
 
-**Fonksiyonlar:**
-- `deposit(lp, amount)` / `withdraw(lp, shares)` — LP likiditesi
-- `borrow(invoice_id)` — faturayı kilitle, avans öde, `mark_financed` çağır
-- `repay(invoice_id, amount)` — müşteri ödemesi; krediyi kapat, kalanı issuer'a, fee'yi LP'lere
-- `handle_default(invoice_id)` — MVP basit kural
+**Functions:**
+- `deposit(lp, amount)` / `withdraw(lp, shares)` — LP liquidity
+- `borrow(invoice_id)` — lock the invoice, pay the advance, call `mark_financed`
+- `repay(invoice_id, amount)` — client payment; close the loan, remainder to the issuer, fee to the LPs
+- `handle_default(invoice_id)` — simple MVP rule
 - `pool_stats() -> (liquidity, borrowed, utilization, apy)`
 
-**Deterministik settlement (kritik):** `repay` çağrıldığında tüm dağıtım tek transaction içinde atomik gerçekleşir — off-chain receivable, on-chain credit'e karşı **provably** kapanır. Senin pitch'te "core technical and trust problem" dediğin nokta tam burada çözülür.
+**Deterministic settlement (critical):** When `repay` is called, the entire
+distribution happens atomically within a single transaction — the off-chain
+receivable closes **provably** against the on-chain credit. This is exactly where
+the "core technical and trust problem" from the pitch gets solved.
 
 ---
 
-## 6. Modül / Repo Yapısı
+## 6. Module / Repo Structure
 
 ```
 anchorflow/
@@ -172,19 +181,19 @@ anchorflow/
 ├── packages/
 │   ├── backend/                # Node + TypeScript
 │   │   ├── src/
-│   │   │   ├── invoice/        # fatura servisi
+│   │   │   ├── invoice/        # invoice service
 │   │   │   ├── payments/       # path-payment builder
-│   │   │   ├── soroban/        # kontrat çağrı orkestrasyonu
+│   │   │   ├── soroban/        # contract call orchestration
 │   │   │   ├── anchor/         # SEP-24 simulator
 │   │   │   └── indexer/        # event listener
 │   │   └── package.json
 │   ├── frontend/               # Next.js
 │   │   ├── app/
-│   │   │   ├── invoice/        # freelancer paneli
-│   │   │   ├── pay/[id]/       # müşteri ödeme sayfası
+│   │   │   ├── invoice/        # freelancer panel
+│   │   │   ├── pay/[id]/       # client payment page
 │   │   │   └── pool/           # LP dashboard
 │   │   └── package.json
-│   └── shared/                 # ortak tipler, ABI, asset config
+│   └── shared/                 # shared types, ABI, asset config
 ├── docs/
 │   └── ARCHITECTURE.md
 └── README.md
@@ -192,21 +201,21 @@ anchorflow/
 
 ---
 
-## 7. Teknoloji Stack
+## 7. Technology Stack
 
-| Katman | Teknoloji | Neden |
+| Layer | Technology | Why |
 |--------|-----------|-------|
-| Smart contracts | Soroban (Rust) | Güvenli RWA + lending mantığı |
-| Ödeme / FX | Stellar SDK (JS) | Path payments, native DEX, SEP-10 |
-| Anchor | SEP-24 / SEP-31 (testnet sim) | Yerel fiat on/off-ramp köprüsü |
-| Backend | Node.js + TypeScript | Tx orkestrasyon, indexer |
-| Veritabanı | PostgreSQL | Off-chain metadata, link state |
-| Frontend | Next.js + Stellar Wallets Kit | Freighter cüzdan, 3 panel |
-| Network | Testnet → Futurenet → Mainnet | Aşamalı geçiş |
+| Smart contracts | Soroban (Rust) | Secure RWA + lending logic |
+| Payments / FX | Stellar SDK (JS) | Path payments, native DEX, SEP-10 |
+| Anchor | SEP-24 / SEP-31 (testnet sim) | Local fiat on/off-ramp bridge |
+| Backend | Node.js + TypeScript | Tx orchestration, indexer |
+| Database | PostgreSQL | Off-chain metadata, link state |
+| Frontend | Next.js + Stellar Wallets Kit | Freighter wallet, 3 panels |
+| Network | Testnet → Futurenet → Mainnet | Phased rollout |
 
 ---
 
-## 8. Veri Modeli (Off-chain, Postgres)
+## 8. Data Model (Off-chain, Postgres)
 
 ```
 users         (id, stellar_address, role, created_at)
@@ -221,37 +230,38 @@ lp_positions  (id, user_id, shares, deposited, created_at)
 
 ---
 
-## 9. Güven & Güvenlik Notları
+## 9. Trust & Security Notes
 
-| Risk | MVP yaklaşımı | Sonraki milestone |
+| Risk | MVP approach | Next milestone |
 |------|---------------|-------------------|
-| Fatura sahteciliği | `doc_hash` + müşteri `accept` imzası | E-imza, müşteri attestation, oracle |
-| Çifte financing | Token `status` kontratta kilitlenir | — |
-| Default | Basit risk-fonu kuralı | Tam likidasyon + kredi skoru |
-| FX riski | Sabit/temsa oran | Oracle-fed dinamik oran |
-| LP fon güvenliği | Atomik settlement, audited contract pattern | Bağımsız audit |
-| Reentrancy / yetki | Soroban auth + checks-effects pattern | Formal review |
+| Invoice forgery | `doc_hash` + client `accept` signature | E-signature, client attestation, oracle |
+| Double financing | Token `status` is locked in the contract | — |
+| Default | Simple risk-fund rule | Full liquidation + credit score |
+| FX risk | Fixed/representative rate | Oracle-fed dynamic rate |
+| LP fund safety | Atomic settlement, audited contract pattern | Independent audit |
+| Reentrancy / authorization | Soroban auth + checks-effects pattern | Formal review |
 
 ---
 
-## 10. Milestone Yol Haritası
+## 10. Milestone Roadmap
 
-| # | Milestone | Çıktı |
+| # | Milestone | Output |
 |---|-----------|-------|
-| **1** | **MVP (hackathon)** | Invoice link → path-payment → InvoiceToken → tek LendingPool → otomatik settlement. Testnet'te uçtan uca çalışan demo. |
-| 2 | Anchor off-ramp | SEP-24 testnet anchor entegrasyonu, yerel cash-out sim. |
+| **1** | **MVP (hackathon)** | Invoice link → path-payment → InvoiceToken → single LendingPool → automatic settlement. End-to-end working demo on testnet. |
+| 2 | Anchor off-ramp | SEP-24 testnet anchor integration, local cash-out sim. |
 | 3 | Lending hardening | Default handling, partial repayment, oracle-fed FX risk. |
-| 4 | Payroll streaming | Soroban ile saniye-bazlı maaş + milestone escrow. |
-| 5 | Mainnet pilot | Çok-koridor, gerçek anchor, ilk LP'ler, ilk gerçek kullanıcı. |
+| 4 | Payroll streaming | Per-second payroll + milestone escrow via Soroban. |
+| 5 | Mainnet pilot | Multi-corridor, real anchors, first LPs, first real user. |
 
 ---
 
-## 11. Demo Senaryosu (Jüri için)
+## 11. Demo Scenario (For Judges)
 
-> "Lagos'taki bir freelancer, Berlin'deki müşterisine 1000 USDC fatura keser. Müşteri EURC ile öder — path payment ~5 saniyede USDC'ye çevirir. Freelancer 60 gün beklemek yerine, faturasını tokenize edip pool'dan **850 USDC'yi anında** çeker. 60 gün sonra müşteri ödediğinde, smart contract krediyi otomatik kapatır, freelancer kalanı alır, dünyanın öbür ucundaki LP gerçek nakit-akışı destekli yield kazanır. Tek bir bankaya, tek bir SWIFT mesajına dokunmadan."
+> "A freelancer in Lagos issues a 1000 USDC invoice to their client in Berlin. The client pays with EURC — a path payment converts it to USDC in ~5 seconds. Instead of waiting 60 days, the freelancer tokenizes the invoice and draws **850 USDC instantly** from the pool. 60 days later, when the client pays, the smart contract closes the loan automatically, the freelancer gets the remainder, and an LP on the other side of the world earns real cash-flow-backed yield. Without touching a single bank or a single SWIFT message."
 
-Bu 90 saniyelik demo, anlatının tamamını (cross-border + RWA + financing + global LP) tek akışta kanıtlar.
+This 90-second demo proves the entire narrative (cross-border + RWA + financing +
+global LP) in a single flow.
 
 ---
 
-*Tüm tasarım, kod ve dokümantasyon Can Sarıhan'a aittir.*
+*All design, code, and documentation belong to Can Sarıhan.*

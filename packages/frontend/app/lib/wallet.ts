@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * Cüzdan bağlayıcı.
+ * Wallet connector.
  *
- * MVP: bağlı hesap localStorage'da tutulur (her ortamda çalışan demo).
- * Üretim entegrasyon noktası: `connect()` içinde Freighter / Stellar Wallets Kit
- * çağrısı yapılır (getPublicKey). Author: Can Sarıhan
+ * MVP: the connected account is kept in localStorage (a demo that works in any environment).
+ * Production integration point: call Freighter / Stellar Wallets Kit inside `connect()`
+ * (getPublicKey). Author: Can Sarıhan
  */
 
 const KEY = "anchorflow.account";
@@ -26,8 +26,8 @@ export function disconnect(): void {
 }
 
 /**
- * Freighter varsa ondan adres al; yoksa null (UI manuel girişe düşer).
- * Üretimde: `import { getPublicKey, isConnected } from "@stellar/freighter-api"`.
+ * Get the address from Freighter if available; otherwise null (the UI falls back to manual entry).
+ * In production: `import { getPublicKey, isConnected } from "@stellar/freighter-api"`.
  */
 export async function connectFreighter(): Promise<string | null> {
   if (typeof window === "undefined") return null;

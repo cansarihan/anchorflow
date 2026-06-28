@@ -1,13 +1,14 @@
 #![no_std]
 //! AnchorFlow — PayrollStream
 //!
-//! Uzak ekipler için programlanabilir, saniye-bazlı (ledger-bazlı) maaş akışı.
-//! İşveren bir akış oluşturup toplam tutarı kontrata kilitler; çalışan zamanla
-//! lineer olarak hak eder (vest) ve istediği an hak edilen kısmı çekebilir.
-//! İşveren akışı iptal ederse hak edilen kısım çalışana, kalan işverene döner.
+//! Programmable, per-second (ledger-based) payroll streaming for remote teams.
+//! The employer creates a stream and locks the total amount in the contract;
+//! the employee vests linearly over time and can withdraw the vested portion at
+//! any moment. If the employer cancels the stream, the vested portion goes to
+//! the employee and the remainder returns to the employer.
 //!
-//! Stellar'ın sub-cent ücreti + 5 sn finality'si, bu tür mikro-akışları
-//! ekonomik kılan tek modeldir.
+//! Stellar's sub-cent fees + 5-second finality are the only model that makes
+//! these kinds of micro-streams economical.
 //!
 //! Author: Can Sarıhan
 
@@ -57,7 +58,7 @@ pub struct PayrollStream;
 
 #[contractimpl]
 impl PayrollStream {
-    /// Yeni bir maaş akışı oluştur. İşveren toplam tutarı kontrata kilitler.
+    /// Create a new payroll stream. The employer locks the total amount in the contract.
     pub fn create_stream(
         env: Env,
         employer: Address,
@@ -75,7 +76,7 @@ impl PayrollStream {
             return Err(Error::InvalidRange);
         }
 
-        // Toplam tutarı kontrata aktar (escrow).
+        // Transfer the total amount into the contract (escrow).
         token::Client::new(&env, &asset).transfer(
             &employer,
             &env.current_contract_address(),
@@ -105,19 +106,19 @@ impl PayrollStream {
         Ok(id)
     }
 
-    /// Şu ana kadar hak edilen (vest olmuş) toplam tutar.
+    /// Total amount vested so far.
     pub fn vested(env: Env, id: u64) -> Result<i128, Error> {
         let s = Self::load(&env, id)?;
         Ok(Self::vested_amount(&env, &s))
     }
 
-    /// Hak edilmiş ama henüz çekilmemiş tutar.
+    /// Amount vested but not yet withdrawn.
     pub fn withdrawable(env: Env, id: u64) -> Result<i128, Error> {
         let s = Self::load(&env, id)?;
         Ok(Self::vested_amount(&env, &s) - s.withdrawn)
     }
 
-    /// Çalışan hak edilen kısmı çeker.
+    /// The employee withdraws the vested portion.
     pub fn withdraw(env: Env, id: u64) -> Result<i128, Error> {
         let mut s = Self::load(&env, id)?;
         if s.status != StreamStatus::Active {
@@ -144,7 +145,7 @@ impl PayrollStream {
         Ok(amount)
     }
 
-    /// İşveren akışı iptal eder: hak edilen çalışana, kalan işverene döner.
+    /// The employer cancels the stream: vested goes to the employee, the remainder to the employer.
     pub fn cancel(env: Env, id: u64) -> Result<(), Error> {
         let mut s = Self::load(&env, id)?;
         if s.status != StreamStatus::Active {
@@ -175,7 +176,7 @@ impl PayrollStream {
         Self::load(&env, id)
     }
 
-    // --- iç yardımcılar ---
+    // --- internal helpers ---
 
     fn load(env: &Env, id: u64) -> Result<Stream, Error> {
         env.storage()
@@ -184,7 +185,7 @@ impl PayrollStream {
             .ok_or(Error::StreamNotFound)
     }
 
-    /// Lineer vesting: ledger ilerledikçe orantılı hak ediş.
+    /// Linear vesting: proportional vesting as the ledger advances.
     fn vested_amount(env: &Env, s: &Stream) -> i128 {
         let now = env.ledger().sequence();
         if now <= s.start_ledger {

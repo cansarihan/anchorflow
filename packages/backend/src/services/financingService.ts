@@ -4,11 +4,11 @@ import { getInvoice } from "./invoiceService.js";
 import type { Loan, PathPaymentQuote } from "../types.js";
 
 /**
- * Financing servisi: faturaya karşı avans çek, müşteri ödemesiyle krediyi kapat.
+ * Financing service: draw an advance against an invoice, close the loan on customer payment.
  * Author: Can Sarıhan
  */
 
-/** Kabul edilmiş faturaya karşı anında avans. */
+/** Instant advance against an accepted invoice. */
 export async function drawAdvance(invoiceId: string): Promise<Loan> {
   const invoice = getInvoice(invoiceId);
   if (invoice.status !== "Accepted") throw new Error("InvoiceNotAccepted");
@@ -32,8 +32,8 @@ export async function drawAdvance(invoiceId: string): Promise<Loan> {
 }
 
 /**
- * Müşteri ödemesi için çok-para-birimli path-payment teklifi üret.
- * (Müşteri kendi varlığında öder; DEX üzerinden settlement varlığına çevrilir.)
+ * Produce a multi-currency path-payment quote for the customer payment.
+ * (The customer pays in their own asset; it is converted to the settlement asset via the DEX.)
  */
 export async function quotePayment(
   invoiceId: string,
@@ -50,7 +50,7 @@ export async function quotePayment(
   });
 }
 
-/** Müşteri faturayı öder; varsa kredi atomik kapanır. */
+/** The customer pays the invoice; any existing loan is closed atomically. */
 export async function settlePayment(invoiceId: string): Promise<Loan | null> {
   const invoice = getInvoice(invoiceId);
   if (invoice.onchainId === null) throw new Error("NotMinted");
@@ -65,7 +65,7 @@ export async function settlePayment(invoiceId: string): Promise<Loan | null> {
     return store.loans.update(invoiceId, { status: "Repaid", txHash });
   }
 
-  // Financing yoksa düz ödeme: faturayı Paid yap.
+  // No financing means a plain payment: mark the invoice Paid.
   store.invoices.update(invoiceId, { status: "Paid" });
   return null;
 }

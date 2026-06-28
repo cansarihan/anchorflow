@@ -2,7 +2,7 @@ import { getLedger } from "../ledger/index.js";
 import type { StreamView } from "../types.js";
 
 /**
- * Maaş akışı servisi — PayrollStream kontratının üstünde ince katman.
+ * Payroll stream service — a thin layer over the PayrollStream contract.
  * Author: Can Sarıhan
  */
 

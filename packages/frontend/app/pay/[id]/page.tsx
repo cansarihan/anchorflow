@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { api, type PathPaymentQuote } from "../../lib/api";
 import { getAccount } from "../../lib/wallet";
 
-/** Müşteri ödeme sayfası. Author: Can Sarıhan */
+/** Customer payment page. Author: Can Sarıhan */
 export default function PayPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -57,8 +57,8 @@ export default function PayPage() {
       setToast({
         kind: "ok",
         msg: r.loan
-          ? "Ödeme alındı — kredi otomatik kapatıldı ✓"
-          : "Ödeme alındı ✓",
+          ? "Payment received — loan repaid automatically ✓"
+          : "Payment received ✓",
       });
       await load();
     } catch (e) {
@@ -71,7 +71,7 @@ export default function PayPage() {
   if (!info) {
     return (
       <div className="card">
-        <h2>Fatura yükleniyor…</h2>
+        <h2>Loading invoice…</h2>
         {toast && <div className={`toast ${toast.kind}`}>{toast.msg}</div>}
       </div>
     );
@@ -81,11 +81,11 @@ export default function PayPage() {
 
   return (
     <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-      <h2>Ödeme</h2>
-      <p className="hint">AnchorFlow üzerinden güvenli, anında settlement.</p>
+      <h2>Payment</h2>
+      <p className="hint">Secure, instant settlement through AnchorFlow.</p>
 
       <div className="stat" style={{ marginBottom: 18 }}>
-        <div className="k">Ödenecek tutar</div>
+        <div className="k">Amount due</div>
         <div className="v">
           {info.amount} {info.asset}
         </div>
@@ -103,7 +103,7 @@ export default function PayPage() {
         <>
           <div className="row">
             <div>
-              <label>Ödeme para birimin</label>
+              <label>Your payment currency</label>
               <select
                 value={sourceAsset}
                 onChange={(e) => setSourceAsset(e.target.value)}
@@ -114,7 +114,7 @@ export default function PayPage() {
               </select>
             </div>
             <div>
-              <label>Adresin</label>
+              <label>Your address</label>
               <input
                 placeholder="G…"
                 value={payer}
@@ -124,29 +124,29 @@ export default function PayPage() {
           </div>
 
           <button className="ghost" disabled={busy} onClick={getQuote}>
-            Kur teklifi al
+            Get rate quote
           </button>
 
           {quote && (
             <div className="stat" style={{ marginTop: 14 }}>
-              <div className="k">Gönderilecek (path-payment)</div>
+              <div className="k">To send (path-payment)</div>
               <div className="v">
                 {quote.sendAmount} {sourceAsset}
               </div>
               <div className="muted" style={{ marginTop: 4 }}>
-                → {quote.estimatedDestAmount} {info.asset} (DEX üzerinden FX)
+                → {quote.estimatedDestAmount} {info.asset} (FX via DEX)
               </div>
             </div>
           )}
 
           <button className="success" disabled={busy} onClick={pay}>
-            {info.amount} {info.asset} öde
+            Pay {info.amount} {info.asset}
           </button>
         </>
       )}
 
       {paid && (
-        <div className="toast ok">Bu fatura ödendi. Teşekkürler!</div>
+        <div className="toast ok">This invoice has been paid. Thank you!</div>
       )}
     </div>
   );

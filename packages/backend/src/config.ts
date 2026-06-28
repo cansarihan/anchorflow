@@ -1,9 +1,9 @@
 import "dotenv/config";
 
 /**
- * AnchorFlow backend yapılandırması.
- * Kontrat adresleri ve gizli anahtar verilmemişse sunucu "sim" modunda çalışır:
- * tüm akış yerel olarak (kontrat matematiğinin aynası ile) gösterilebilir.
+ * AnchorFlow backend configuration.
+ * If contract addresses and the secret key are not provided, the server runs in
+ * "sim" mode: the entire flow can be demonstrated locally (mirroring the contract math).
  * Author: Can Sarıhan
  */
 
@@ -33,11 +33,11 @@ export const config = {
     feeBps: Number(env("FEE_BPS", "200")),
   },
 
-  // Sunucu cüzdanı (admin/işlemci). Boşsa sim modu.
+  // Server wallet (admin/operator). Empty means sim mode.
   signerSecret: env("SIGNER_SECRET"),
 } as const;
 
-/** Canlı Soroban çağrıları için gerekli her şey var mı? */
+/** Is everything required for live Soroban calls present? */
 export function isLiveMode(): boolean {
   return Boolean(
     config.signerSecret &&

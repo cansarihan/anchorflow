@@ -1,12 +1,14 @@
 #![no_std]
 //! AnchorFlow — InvoiceToken
 //!
-//! Her doğrulanmış fatura, Stellar/Soroban üzerinde benzersiz bir RWA (real-world
-//! asset) token'ı olarak temsil edilir. Token'ın sahibi onu kesen bağımsız
-//! çalışandır (issuer). LendingPool, bu token'ı teminat alarak avans verir.
+//! Each verified invoice is represented as a unique RWA (real-world
+//! asset) token on Stellar/Soroban. The token's owner is the independent
+//! freelancer who issued it (issuer). The LendingPool takes this token as
+//! collateral and advances funds against it.
 //!
-//! Güven modeli (MVP): `doc_hash` off-chain fatura belgesini zincire bağlar;
-//! `accept` adımı müşteri onayını temsil eder ve financing'in ön koşuludur.
+//! Trust model (MVP): `doc_hash` binds the off-chain invoice document to the
+//! chain; the `accept` step represents customer approval and is a precondition
+//! for financing.
 //!
 //! Author: Can Sarıhan
 
@@ -17,15 +19,15 @@ use soroban_sdk::{
 #[contracttype]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Status {
-    /// Basıldı, henüz müşteri kabulü yok.
+    /// Minted, no customer acceptance yet.
     Pending = 0,
-    /// Müşteri faturayı kabul etti — financing'e uygun.
+    /// Customer accepted the invoice — eligible for financing.
     Accepted = 1,
-    /// LendingPool teminat aldı, avans ödendi.
+    /// LendingPool took collateral, advance paid out.
     Financed = 2,
-    /// Müşteri ödedi, kredi kapandı.
+    /// Customer paid, loan closed.
     Paid = 3,
-    /// Vade geçti, ödenmedi.
+    /// Past due, unpaid.
     Defaulted = 4,
 }
 
@@ -44,15 +46,15 @@ pub struct Invoice {
 
 #[contracttype]
 pub enum DataKey {
-    /// Kontrat yöneticisi (deploy eden).
+    /// Contract administrator (the deployer).
     Admin,
-    /// LendingPool adresi — yalnızca o `mark_financed`/`mark_paid` çağırabilir.
+    /// LendingPool address — only it may call `mark_financed`/`mark_paid`.
     Pool,
-    /// Artan fatura sayacı.
+    /// Incrementing invoice counter.
     Counter,
     /// id -> Invoice
     Invoice(u64),
-    /// issuer -> Vec<u64> (sahibe ait fatura id'leri)
+    /// issuer -> Vec<u64> (invoice ids belonging to the owner)
     Owned(Address),
 }
 
@@ -74,7 +76,7 @@ pub struct InvoiceToken;
 
 #[contractimpl]
 impl InvoiceToken {
-    /// Kontratı başlat. Admin, pool adresini sonradan atayabilir.
+    /// Initialize the contract. The admin can assign the pool address later.
     pub fn init(env: Env, admin: Address) -> Result<(), Error> {
         if env.storage().instance().has(&DataKey::Admin) {
             return Err(Error::AlreadyInitialized);
@@ -84,7 +86,7 @@ impl InvoiceToken {
         Ok(())
     }
 
-    /// LendingPool kontrat adresini ata (yalnızca admin).
+    /// Set the LendingPool contract address (admin only).
     pub fn set_pool(env: Env, pool: Address) -> Result<(), Error> {
         let admin: Address = env
             .storage()
@@ -96,7 +98,7 @@ impl InvoiceToken {
         Ok(())
     }
 
-    /// Yeni bir fatura token'ı bas. Çağıran issuer olmalı.
+    /// Mint a new invoice token. The caller must be the issuer.
     pub fn mint(
         env: Env,
         issuer: Address,
@@ -147,7 +149,7 @@ impl InvoiceToken {
         Ok(counter)
     }
 
-    /// Müşteri faturayı kabul eder — financing ön koşulu.
+    /// The customer accepts the invoice — a precondition for financing.
     pub fn accept(env: Env, id: u64) -> Result<(), Error> {
         let mut invoice = Self::load(&env, id)?;
         invoice.payer.require_auth();
@@ -159,7 +161,7 @@ impl InvoiceToken {
         Ok(())
     }
 
-    /// Faturayı "financed" olarak işaretle — yalnızca LendingPool çağırabilir.
+    /// Mark the invoice as "financed" — only the LendingPool may call this.
     pub fn mark_financed(env: Env, id: u64) -> Result<(), Error> {
         Self::require_pool(&env)?;
         let mut invoice = Self::load(&env, id)?;
@@ -171,7 +173,7 @@ impl InvoiceToken {
         Ok(())
     }
 
-    /// Faturayı "paid" olarak işaretle — yalnızca LendingPool çağırabilir.
+    /// Mark the invoice as "paid" — only the LendingPool may call this.
     pub fn mark_paid(env: Env, id: u64) -> Result<(), Error> {
         Self::require_pool(&env)?;
         let mut invoice = Self::load(&env, id)?;
@@ -183,7 +185,7 @@ impl InvoiceToken {
         Ok(())
     }
 
-    /// Faturayı "defaulted" olarak işaretle — yalnızca LendingPool çağırabilir.
+    /// Mark the invoice as "defaulted" — only the LendingPool may call this.
     pub fn mark_defaulted(env: Env, id: u64) -> Result<(), Error> {
         Self::require_pool(&env)?;
         let mut invoice = Self::load(&env, id)?;
@@ -195,12 +197,12 @@ impl InvoiceToken {
         Ok(())
     }
 
-    /// Bir faturayı oku.
+    /// Read an invoice.
     pub fn get(env: Env, id: u64) -> Result<Invoice, Error> {
         Self::load(&env, id)
     }
 
-    /// Bir sahibin tüm fatura id'lerini oku.
+    /// Read all invoice ids of an owner.
     pub fn owned_by(env: Env, issuer: Address) -> Vec<u64> {
         env.storage()
             .persistent()
@@ -208,7 +210,7 @@ impl InvoiceToken {
             .unwrap_or(Vec::new(&env))
     }
 
-    // --- iç yardımcılar ---
+    // --- internal helpers ---
 
     fn load(env: &Env, id: u64) -> Result<Invoice, Error> {
         env.storage()

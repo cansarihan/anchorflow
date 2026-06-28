@@ -5,7 +5,7 @@ import { config } from "../config.js";
 import type { Invoice } from "../types.js";
 
 /**
- * Fatura yaşam döngüsü servisi: oluştur -> kabul et.
+ * Invoice lifecycle service: create -> accept.
  * Author: Can Sarıhan
  */
 
@@ -16,11 +16,11 @@ export interface CreateInvoiceInput {
   amount: string;
   asset?: string;
   dueDate: string; // ISO
-  documentRef?: string; // off-chain belge içeriği/uri (hash'lenir)
+  documentRef?: string; // off-chain document content/uri (gets hashed)
 }
 
 function docHashOf(input: CreateInvoiceInput, id: string): string {
-  // Fatura belgesinin deterministik hash'i — zincire bağlanır (authenticity).
+  // Deterministic hash of the invoice document — bound on-chain (authenticity).
   const material = JSON.stringify({
     id,
     issuer: input.issuerAddress,
@@ -31,14 +31,14 @@ function docHashOf(input: CreateInvoiceInput, id: string): string {
   return createHash("sha256").update(material).digest("hex");
 }
 
-/** Vade tarihini yaklaşık ledger sequence'a çevir (~5 sn/ledger). */
+/** Convert the due date to an approximate ledger sequence (~5 s/ledger). */
 function dueLedger(dueDate: string): number {
   const secondsAhead = Math.max(
     0,
     Math.floor((new Date(dueDate).getTime() - Date.now()) / 1000),
   );
-  // Mutlak ledger sequence backend'de bilinmediğinden göreli offset kullanılır;
-  // canlı modda Soroban tarafı mevcut ledger'a ekler. MVP: offset/5.
+  // Since the absolute ledger sequence is unknown in the backend, a relative offset is used;
+  // in live mode the Soroban side adds it to the current ledger. MVP: offset/5.
   return Math.floor(secondsAhead / 5);
 }
 

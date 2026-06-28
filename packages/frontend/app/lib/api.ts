@@ -1,5 +1,5 @@
 /**
- * AnchorFlow backend API istemcisi. /api/* -> backend (next rewrite).
+ * AnchorFlow backend API client. /api/* -> backend (next rewrite).
  * Author: Can Sarıhan
  */
 

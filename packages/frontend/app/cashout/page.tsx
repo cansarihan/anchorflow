@@ -5,8 +5,8 @@ import { api, type AnchorTransaction } from "../lib/api";
 import { getAccount } from "../lib/wallet";
 
 /**
- * Yerel nakde çevirme (anchor off-ramp, SEP-24). Freelancer USDC'sini
- * yerel banka/mobil paraya çeker. Author: Can Sarıhan
+ * Local cash out (anchor off-ramp, SEP-24). Withdraws a freelancer's USDC
+ * to a local bank/mobile money account. Author: Can Sarıhan
  */
 export default function CashoutPage() {
   const [account, setAccount] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function CashoutPage() {
     try {
       const done = await api.anchorComplete(tx.id);
       setTx(done);
-      setToast({ kind: "ok", msg: "Yerel hesabına ödeme tamamlandı ✓" });
+      setToast({ kind: "ok", msg: "Payment to your local account completed ✓" });
     } catch (e) {
       setToast({ kind: "err", msg: (e as Error).message });
     } finally {
@@ -63,8 +63,8 @@ export default function CashoutPage() {
   if (!account) {
     return (
       <div className="card">
-        <h2>Cüzdan bağlı değil</h2>
-        <p className="hint">Nakde çevirmek için sağ üstten adres bağla.</p>
+        <h2>Wallet not connected</h2>
+        <p className="hint">Connect an address from the top right to cash out.</p>
       </div>
     );
   }
@@ -73,10 +73,10 @@ export default function CashoutPage() {
 
   return (
     <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
-      <h2>Yerel nakde çevir</h2>
+      <h2>Local cash out</h2>
       <p className="hint">
-        Stellar anchor (SEP-24) ile USDC'ni yerel banka veya mobil paraya çek —
-        bankaların görmezden geldiği bölgelerde bile.
+        Withdraw your USDC to a local bank or mobile money account via a Stellar
+        anchor (SEP-24) — even in regions that banks ignore.
       </p>
 
       {toast && <div className={`toast ${toast.kind}`}>{toast.msg}</div>}
@@ -85,11 +85,11 @@ export default function CashoutPage() {
         <>
           <div className="row">
             <div>
-              <label>Tutar</label>
+              <label>Amount</label>
               <input value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
             <div>
-              <label>Varlık</label>
+              <label>Asset</label>
               <select value={asset} onChange={(e) => setAsset(e.target.value)}>
                 <option value="USDC">USDC</option>
                 <option value="EURC">EURC</option>
@@ -97,20 +97,20 @@ export default function CashoutPage() {
             </div>
           </div>
           <button className="success" disabled={busy} onClick={start}>
-            Off-ramp başlat
+            Start off-ramp
           </button>
         </>
       )}
 
       {tx && (
         <div className="stat" style={{ marginTop: 8 }}>
-          <div className="k">Off-ramp talebi</div>
+          <div className="k">Off-ramp request</div>
           <div className="v">
             {tx.amount} {tx.asset}
           </div>
           <div style={{ marginTop: 8 }}>
             <span className={`badge ${done ? "Paid" : "Financed"}`}>
-              {done ? "Tamamlandı" : "Banka transferi bekleniyor"}
+              {done ? "Completed" : "Awaiting bank transfer"}
             </span>
           </div>
           {!done && (
@@ -120,12 +120,12 @@ export default function CashoutPage() {
               onClick={complete}
               style={{ marginTop: 14 }}
             >
-              Bankaya gönderildi (anchor'ı tamamla)
+              Sent to bank (complete the anchor)
             </button>
           )}
           {done && (
             <div className="muted" style={{ marginTop: 12 }}>
-              {tx.amount} {tx.asset} → yerel hesabın. İşlem ref: {tx.id.slice(0, 8)}
+              {tx.amount} {tx.asset} → your local account. Transaction ref: {tx.id.slice(0, 8)}
             </div>
           )}
         </div>

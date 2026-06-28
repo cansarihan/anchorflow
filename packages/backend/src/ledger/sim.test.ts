@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { SimLedger } from "./sim.js";
 
 /**
- * SimLedger financing akışı testleri — kontrat matematiğiyle aynı olmalı.
+ * SimLedger financing flow tests — must match the contract math.
  * Author: Can Sarıhan
  */
 
 const ADDR = "GBHOCQMBQHAVMFSCWWN4MOODBAADITSI3N5JB3FNMOLFNIUOXSGDUZAN";
 
-test("başlangıç havuzu tohum likidite ile gelir", async () => {
+test("initial pool starts with seed liquidity", async () => {
   const l = new SimLedger();
   const s = await l.poolStats();
   assert.equal(s.liquidity, "100000");
@@ -17,7 +17,7 @@ test("başlangıç havuzu tohum likidite ile gelir", async () => {
   assert.equal(s.utilizationBps, 0);
 });
 
-test("borrow %85 avans verir ve borrowed'ı artırır", async () => {
+test("borrow gives an 85% advance and increases borrowed", async () => {
   const l = new SimLedger();
   const { onchainId } = await l.mintInvoice({
     issuerAddress: ADDR,
@@ -30,10 +30,10 @@ test("borrow %85 avans verir ve borrowed'ı artırır", async () => {
   assert.equal(advance, "850");
   const s = await l.poolStats();
   assert.equal(s.borrowed, "850");
-  assert.equal(s.utilizationBps, 85); // 850/100000 = %0.85 = 85 bps
+  assert.equal(s.utilizationBps, 85); // 850/100000 = 0.85% = 85 bps
 });
 
-test("repay krediyi kapatır ve fee'yi LP yield olarak ekler", async () => {
+test("repay closes the loan and adds the fee as LP yield", async () => {
   const l = new SimLedger();
   const { onchainId } = await l.mintInvoice({
     issuerAddress: ADDR,
@@ -46,22 +46,22 @@ test("repay krediyi kapatır ve fee'yi LP yield olarak ekler", async () => {
   await l.repay(onchainId, "1000");
   const s = await l.poolStats();
   assert.equal(s.borrowed, "0");
-  assert.equal(s.liquidity, "100020"); // 100000 + 20 fee (%2)
+  assert.equal(s.liquidity, "100020"); // 100000 + 20 fee (2%)
 });
 
-test("yetersiz likiditede borrow hata verir", async () => {
+test("borrow fails when liquidity is insufficient", async () => {
   const l = new SimLedger();
   const { onchainId } = await l.mintInvoice({
     issuerAddress: ADDR,
     payerAddress: ADDR,
-    amount: "200000", // havuzdan büyük
+    amount: "200000", // larger than the pool
     dueLedger: 100,
     docHash: "aa",
   });
   await assert.rejects(() => l.borrow(onchainId, "200000"), /InsufficientLiquidity/);
 });
 
-test("createStream: aktif akış + escrow toplamı", async () => {
+test("createStream: active stream + escrow total", async () => {
   const l = new SimLedger();
   const { streamId } = await l.createStream({
     employer: ADDR,
@@ -75,12 +75,12 @@ test("createStream: aktif akış + escrow toplamı", async () => {
   assert.equal(s.status, "Active");
 });
 
-test("getStream: olmayan akış hata verir", async () => {
+test("getStream: a nonexistent stream errors", async () => {
   const l = new SimLedger();
   await assert.rejects(() => l.getStream(999), /StreamNotFound/);
 });
 
-test("path-payment teklifi spread ekler", async () => {
+test("path-payment quote adds a spread", async () => {
   const l = new SimLedger();
   const q = await l.buildPathPayment({
     sourceAsset: "EURC",
@@ -88,5 +88,5 @@ test("path-payment teklifi spread ekler", async () => {
     destAmount: "1000",
   });
   assert.equal(q.estimatedDestAmount, "1000");
-  assert.equal(q.sendAmount, "1001"); // ~%0.1 spread
+  assert.equal(q.sendAmount, "1001"); // ~0.1% spread
 });

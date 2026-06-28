@@ -9,152 +9,153 @@ By **Can Sarıhan** · Built on **Stellar & Soroban** · **Live on Testnet**
 
 ## One line
 
-AnchorFlow, sınırsız bağımsız iş gücünün doğrulanabilir gelirini (faturalarını)
-zincir üstü krediye çeviren Stellar-native finansal işletim katmanıdır.
-Bir cüzdan değil — **gelir altyapısı.**
+AnchorFlow is the Stellar-native financial operating layer that turns the
+verifiable income (invoices) of the borderless independent workforce into
+on-chain credit. It's not a wallet — it's **income infrastructure.**
 
 ---
 
 ## The problem
 
-Bağımsız ekonomi artık sınır ötesi çalışan yüz milyonlarca insan demek; ama
-altlarındaki para rayları hâlâ bankalar ve 3 günlük havaleler için tasarlanmış.
+The independent economy now means hundreds of millions of people working across
+borders; yet the money rails underneath them are still designed for banks and
+3-day wire transfers.
 
-Başka ülkedeki bir müşteriye fatura kesen bağımsız bir çalışan tipik olarak:
-- **%5–10'unu** FX spread'i ve havale ücretlerine kaptırır,
-- ödemesini **3–7 gün** bekler,
-- ve fatura vadesi müşteri tarafından dikte edildiği için **30–60 gün geç** alır.
+An independent worker invoicing a client in another country typically:
+- loses **5–10%** to FX spread and remittance fees,
+- waits **3–7 days** to get paid,
+- and gets paid **30–60 days late** because the client dictates the invoice terms.
 
-En kötüsü: bu çalışan elinde gerçek, sözleşmeye dayalı bir **alacak** —
-doğrulanabilir gelir — tutuyor, ama buna karşılık **tek kuruş borçlanamıyor.**
-Çünkü geleneksel kredi sistemleri sınır ötesi, serbest-çalışan nakit akışını ne
-görebiliyor ne de fiyatlayabiliyor. **Sermaye var; sadece onu kazanan insana
-hiç ulaşmıyor.**
-
----
-
-## The product — tek bir ödeme link'i, tam bir hazine yığını
-
-1. **Her şeyde öde al, istediğinde al.** Müşteri kendi para biriminde/stablecoin'inde
-   öder. Stellar **path payments** ile işlem, yerleşik DEX üzerinden otomatik
-   yönlenip çalışanın seçtiği varlığa **~5 saniyede, kuruşun altında** settle olur.
-   Muhabir banka yok, SWIFT yok.
-
-2. **Anchor'lar ile yerel nakde çevir.** Stellar **anchor**'ları ve **SEP**
-   standartları ile çalışan, yerel bankasına veya mobil paraya doğrudan
-   off-ramp yapar — bankaların görmezden geldiği bölgelerde bile kullanılabilir.
-
-3. **Faturayı tokenize et, geliri serbest bırak.** Kabul edilen her fatura,
-   **Soroban** üzerinde tokenize bir RWA olarak basılır. Çalışan bu faturaya
-   karşı, izinsiz (permissionless) bir kredi havuzundan **anında avans** çeker —
-   60 gün yerine bugün faturanın **%80–90'ı**. Müşteri ödeyince akıllı sözleşme
-   krediyi **otomatik kapatır.** Dünyadaki likidite sağlayıcılar spekülatif DeFi
-   yerine gerçek **nakit-akışı destekli getiri** kazanır.
-
-4. **Programlanabilir maaş akışı.** Uzak ekipler için Soroban sözleşmeleri
-   ledger-bazlı maaş akışı (lineer vesting) sağlar; katkıcı istediği an hak
-   ettiğini çeker, işveren iptal ederse fonlar adil bölünür. *(PayrollStream
-   kontratı testnet'te canlı.)*
+Worst of all: that worker is holding a real, contractual **receivable** —
+verifiable income — yet **cannot borrow a single cent** against it. Traditional
+credit systems can neither see nor price cross-border, freelance cash flow.
+**The capital exists; it just never reaches the person who earned it.**
 
 ---
 
-## Why Stellar — ve neden yalnızca Stellar bunu temiz yapar
+## The product — one payment link, a full treasury stack
 
-Bu ürün, jenerik bir zincirde zarif biçimde kurulamaz. Stellar dört primitive'i
-tek yerde veriyor:
+1. **Get paid in anything, receive whatever you want.** The client pays in their
+   own currency/stablecoin. Using Stellar **path payments**, the transaction is
+   automatically routed through the built-in DEX and settles into the asset the
+   worker chose in **~5 seconds, for less than a cent.** No correspondent banks,
+   no SWIFT.
 
-| Primitive | Neden kritik |
+2. **Convert to local cash via anchors.** With Stellar **anchors** and the **SEP**
+   standards, the worker off-ramps directly to their local bank or mobile money —
+   usable even in regions banks ignore.
+
+3. **Tokenize the invoice, unlock the income.** Every accepted invoice is minted
+   as a tokenized RWA on **Soroban**. Against that invoice, the worker draws an
+   **instant advance** from a permissionless credit pool — **80–90%** of the
+   invoice today instead of in 60 days. When the client pays, the smart contract
+   **closes the loan automatically.** Liquidity providers around the world earn
+   real **cash-flow-backed yield** instead of speculative DeFi.
+
+4. **Programmable payroll streaming.** For remote teams, Soroban contracts provide
+   ledger-based payroll streaming (linear vesting); a contributor withdraws what
+   they've earned at any moment, and if the employer cancels, funds split fairly.
+   *(The PayrollStream contract is live on testnet.)*
+
+---
+
+## Why Stellar — and why only Stellar does this cleanly
+
+This product cannot be built elegantly on a generic chain. Stellar provides four
+primitives in one place:
+
+| Primitive | Why it's critical |
 |-----------|--------------|
-| **Anchors** | Düzenlenmiş fiat on/off-ramp — yerel ekonomilere köprü. *Başka kimsede yok; bunu "gerçek para" yapan kısım bu.* |
-| **Path payments + native DEX** | Çok-para-birimli FX, üçüncü-parti API değil, **birinci sınıf** işlem. |
-| **Sub-cent ücret + 5 sn finality** | Mikro-maaş akışı ve küçük-fatura financing'in **ekonomik olduğu tek model.** |
-| **Soroban** | Faturayı güvenle tokenize eden ve kredi mantığını yürüten Rust sözleşmeleri. |
+| **Anchors** | Regulated fiat on/off-ramps — a bridge to local economies. *No one else has this; it's the part that makes this "real money."* |
+| **Path payments + native DEX** | Multi-currency FX as a **first-class** operation, not a third-party API. |
+| **Sub-cent fees + 5s finality** | **The only model where** micro-payroll streaming and small-invoice financing are economical. |
+| **Soroban** | Rust contracts that securely tokenize the invoice and run the lending logic. |
 
 ---
 
 ## Why it's technically hard (and worth doing)
 
-Zorluk, üç zor sistemi tek güvenilir akışta birleştirmek:
-- en iyi fiat ramp'ı koridor başına seçen **çok-anchor routing motoru**,
-- DEX üzerinde slippage'i minimize eden **path-payment FX optimizer'ı**,
-- ve fatura otantikliği, default, kısmi geri ödeme ve oracle-beslemeli FX riskinin
-  başkalarının parasıyla **kanıtlanabilir güvende** olması gereken bir
-  **Soroban RWA + lending protokolü.**
+The difficulty is combining three hard systems into a single trustworthy flow:
+- a **multi-anchor routing engine** that picks the best fiat ramp per corridor,
+- a **path-payment FX optimizer** that minimizes slippage on the DEX,
+- and a **Soroban RWA + lending protocol** in which invoice authenticity, default,
+  partial repayment, and oracle-fed FX risk must be **provably safe** with other
+  people's money.
 
-Zincir-dışı alacakların, zincir-üstü krediye karşı **deterministik** settle
-olmasını sağlamak — çekirdek teknik ve güven problemi budur. Onu çözmek, bunu
-bir ödeme uygulamasından **finansal altyapıya** dönüştüren şeydir.
+Making off-chain receivables settle **deterministically** against on-chain credit
+— that's the core technical and trust problem. Solving it is what turns this from
+a payment app into **financial infrastructure.**
 
 ---
 
-## Traction — bu bir slayt değil, çalışıyor
+## Traction — this isn't a slide, it works
 
-> **Tüm invoice-financing çekirdeği Stellar Testnet'te canlı ve uçtan uca
-> zincirde doğrulandı.**
+> **The entire invoice-financing core is live on Stellar Testnet and verified
+> end-to-end on chain.**
 
-Gerçek 4 hesapla (freelancer, müşteri, LP, admin) çalıştırılan canlı akış:
+A live flow run with 4 real accounts (freelancer, client, LP, admin):
 
-| Adım | On-chain sonuç |
+| Step | On-chain result |
 |------|----------------|
-| LP havuza yatırır | 10.000 USDC likidite |
-| Freelancer 1.000 USDC fatura keser → müşteri kabul eder | InvoiceToken, `Accepted` |
-| Freelancer avans çeker | havuz→freelancer **850 USDC**, `Financed` |
-| Müşteri öder | payer→havuz **1.000**, havuz→freelancer **130**; kredi atomik kapanır |
-| Final | freelancer **980**, havuz **10.020** (20 = LP yield), fatura `Paid` |
+| LP deposits into the pool | 10,000 USDC liquidity |
+| Freelancer issues a 1,000 USDC invoice → client accepts | InvoiceToken, `Accepted` |
+| Freelancer draws an advance | pool→freelancer **850 USDC**, `Financed` |
+| Client pays | payer→pool **1,000**, pool→freelancer **130**; loan closes atomically |
+| Final | freelancer **980**, pool **10,020** (20 = LP yield), invoice `Paid` |
 
-Aynı matematik üç katmanda da birebir tutuyor: kontrat birim testleri (**10/10**),
-backend simülasyonu ve **canlı testnet.** Contract ID'ler ve explorer linkleri:
-[`DEPLOYMENT.md`](DEPLOYMENT.md).
+The same math holds exactly across all three layers: contract unit tests
+(**10/10**), backend simulation, and **live testnet.** Contract IDs and explorer
+links: [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ---
 
 ## Target users
 
-1. **Sınır ötesi freelancer ve içerik üreticileri** — hızlı/ucuz ödeme + alacak financing'i isteyen.
-2. **Dağıtık startup'lar ve DAO'lar** — küresel, çok-para-birimli maaş yürüten.
-3. **Küçük dijital ihracatçı/ajanslar** — işletme sermayesine ihtiyaç duyan.
-4. **Likidite sağlayıcılar** — token emisyonu değil, gerçek ekonomik aktiviteye dayalı getiri arayan.
+1. **Cross-border freelancers and content creators** — who want fast/cheap payments + receivable financing.
+2. **Distributed startups and DAOs** — running global, multi-currency payroll.
+3. **Small digital exporters/agencies** — that need working capital.
+4. **Liquidity providers** — seeking yield based on real economic activity, not token emissions.
 
 ---
 
 ## Business model
 
-- Fatura financing iskonto spread'i (fee_bps),
-- LP yield üzerinden protokol payı,
-- işlem/settlement ücreti.
+- Invoice-financing discount spread (fee_bps),
+- a protocol share of LP yield,
+- transaction/settlement fees.
 
-Net, gösterilebilir gelir → **"revenue milestones"** için doğal yol.
+Clean, demonstrable revenue → a natural path to **"revenue milestones."**
 
 ---
 
 ## Roadmap (milestone-based)
 
-| # | Milestone | Durum |
+| # | Milestone | Status |
 |---|-----------|-------|
-| 1 | MVP: invoice → financing (Testnet) | ✅ **Tamamlandı — canlı** |
-| 2 | Anchor off-ramp (SEP-24) entegrasyonu | ⏳ |
+| 1 | MVP: invoice → financing (Testnet) | ✅ **Done — live** |
+| 2 | Anchor off-ramp (SEP-24) integration | ⏳ |
 | 3 | Lending hardening: default, partial repayment, oracle-fed FX | ⏳ |
-| 4 | Programlanabilir maaş akışı (streaming payroll) | ✅ **Kontrat canlı** |
-| 5 | Mainnet pilot: çok-koridor, gerçek anchor'lar, ilk LP'ler & kullanıcı | ⏳ |
+| 4 | Programmable payroll streaming | ✅ **Contract live** |
+| 5 | Mainnet pilot: multi-corridor, real anchors, first LPs & users | ⏳ |
 
 ---
 
-## Architecture (özet)
+## Architecture (overview)
 
 ```
 Frontend (Next.js)  ──►  Backend (Node/TS)  ──►  Stellar / Soroban
- 3 panel                 ledger adapter            InvoiceToken (RWA)
- freelancer/pay/pool     sim ↔ live                LendingPool (avans + yield)
+ 3 panels                ledger adapter            InvoiceToken (RWA)
+ freelancer/pay/pool     sim ↔ live                LendingPool (advance + yield)
                          path-payment builder      DEX (path payments / FX)
                          SEP-24 anchor sim
 ```
 
-Detay: [`ARCHITECTURE.md`](ARCHITECTURE.md) · Demo runbook: [`DEMO.md`](DEMO.md)
+Detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · Demo runbook: [`DEMO.md`](DEMO.md)
 
 ---
 
-**AnchorFlow başka bir cüzdan değil. Sınırsız iş gücünün gelir altyapısı — ve
-Stellar'ın anchor'ları, path payment'ları ve Soroban'ı bunu bugün gerçek kılan
-tek yığın.**
+**AnchorFlow is not another wallet. It's income infrastructure for the borderless
+workforce — and Stellar's anchors, path payments, and Soroban are the only stack
+that makes this real today.**
 
 — Can Sarıhan

@@ -5,8 +5,8 @@ import { api, type Stream } from "../lib/api";
 import { getAccount, isValidAddress } from "../lib/wallet";
 
 /**
- * Programlanabilir maaş akışı paneli. İşveren akış oluşturur, çalışan zamanla
- * hak eder ve istediği an çeker. Author: Can Sarıhan
+ * Programmable payroll stream dashboard. The employer creates a stream, and the
+ * employee vests over time and withdraws whenever they want. Author: Can Sarıhan
  */
 export default function PayrollPage() {
   const [account, setAccount] = useState<string | null>(null);
@@ -30,11 +30,11 @@ export default function PayrollPage() {
     try {
       setStream(await api.getStream(id));
     } catch {
-      /* yoksay */
+      /* ignore */
     }
   }, []);
 
-  // Akış aktifken canlı vested ilerlemesi için periyodik yenile.
+  // Periodically refresh for live vested progress while the stream is active.
   useEffect(() => {
     if (!stream || stream.status !== "Active") return;
     const t = setInterval(() => refresh(stream.id), 2000);
@@ -53,7 +53,7 @@ export default function PayrollPage() {
         durationSeconds: Number(duration),
       });
       setStream(s);
-      setToast({ kind: "ok", msg: `Akış #${s.id} oluşturuldu (escrow)` });
+      setToast({ kind: "ok", msg: `Stream #${s.id} created (escrow)` });
     } catch (e) {
       setToast({ kind: "err", msg: (e as Error).message });
     } finally {
@@ -68,7 +68,7 @@ export default function PayrollPage() {
     try {
       const r = await api.withdrawStream(stream.id);
       setStream(r.stream);
-      setToast({ kind: "ok", msg: `${r.amount} USDC çekildi` });
+      setToast({ kind: "ok", msg: `${r.amount} USDC withdrawn` });
     } catch (e) {
       setToast({ kind: "err", msg: (e as Error).message });
     } finally {
@@ -79,8 +79,8 @@ export default function PayrollPage() {
   if (!account) {
     return (
       <div className="card">
-        <h2>Cüzdan bağlı değil</h2>
-        <p className="hint">Maaş akışı için sağ üstten adres bağla.</p>
+        <h2>Wallet not connected</h2>
+        <p className="hint">Connect an address from the top right for payroll.</p>
       </div>
     );
   }
@@ -92,14 +92,15 @@ export default function PayrollPage() {
   return (
     <div>
       <div className="card">
-        <h2>Programlanabilir maaş akışı</h2>
+        <h2>Programmable payroll stream</h2>
         <p className="hint">
-          İşveren toplam tutarı kontrata kilitler; çalışan zamanla lineer olarak
-          hak eder ve istediği an çeker. Sub-cent ücret bunu ekonomik kılar.
+          The employer locks the total amount in the contract; the employee vests
+          linearly over time and withdraws whenever they want. Sub-cent fees make
+          this economical.
         </p>
         {!stream && (
           <>
-            <label>Çalışan adresi</label>
+            <label>Employee address</label>
             <input
               placeholder="G…"
               value={employee}
@@ -107,11 +108,11 @@ export default function PayrollPage() {
             />
             <div className="row">
               <div>
-                <label>Toplam (USDC)</label>
+                <label>Total (USDC)</label>
                 <input value={total} onChange={(e) => setTotal(e.target.value)} />
               </div>
               <div>
-                <label>Süre (saniye)</label>
+                <label>Duration (seconds)</label>
                 <input
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
@@ -123,7 +124,7 @@ export default function PayrollPage() {
               disabled={busy || !isValidAddress(employee)}
               onClick={create}
             >
-              Akış oluştur (escrow)
+              Create stream (escrow)
             </button>
           </>
         )}
@@ -133,18 +134,18 @@ export default function PayrollPage() {
 
       {stream && (
         <div className="card">
-          <h2>Akış #{stream.id}</h2>
+          <h2>Stream #{stream.id}</h2>
           <div className="stat-grid">
             <div className="stat">
-              <div className="k">Toplam</div>
+              <div className="k">Total</div>
               <div className="v">{stream.total}</div>
             </div>
             <div className="stat">
-              <div className="k">Hak edilen</div>
+              <div className="k">Vested</div>
               <div className="v">{Number(stream.vested).toFixed(2)}</div>
             </div>
             <div className="stat">
-              <div className="k">Çekilebilir</div>
+              <div className="k">Withdrawable</div>
               <div className="v">{Number(stream.withdrawable).toFixed(2)}</div>
             </div>
           </div>
@@ -169,7 +170,7 @@ export default function PayrollPage() {
             />
           </div>
           <div className="muted" style={{ marginTop: 8, fontSize: 13 }}>
-            {pct.toFixed(1)}% hak edildi ·{" "}
+            {pct.toFixed(1)}% vested ·{" "}
             <span className={`badge ${stream.status === "Completed" ? "Paid" : "Financed"}`}>
               {stream.status}
             </span>
@@ -177,7 +178,7 @@ export default function PayrollPage() {
 
           {stream.status === "Active" && (
             <button className="success" disabled={busy} onClick={withdraw}>
-              Hak edileni çek
+              Withdraw vested
             </button>
           )}
         </div>

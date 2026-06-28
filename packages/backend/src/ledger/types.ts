@@ -1,15 +1,15 @@
 import type { PathPaymentQuote, PoolStats, StreamView } from "../types.js";
 
 /**
- * LedgerAdapter — AnchorFlow'un zincir-üstü operasyonlarının soyutlaması.
- * İki uygulama: SorobanLedger (canlı Stellar/Soroban) ve SimLedger (yerel,
- * kontrat matematiğinin aynası). Author: Can Sarıhan
+ * LedgerAdapter — an abstraction over AnchorFlow's on-chain operations.
+ * Two implementations: SorobanLedger (live Stellar/Soroban) and SimLedger (local,
+ * mirroring the contract math). Author: Can Sarıhan
  */
 
 export interface MintInvoiceParams {
   issuerAddress: string;
   payerAddress: string | null;
-  amount: string; // tam birim
+  amount: string; // whole units
   dueLedger: number;
   docHash: string; // hex
 }
@@ -17,25 +17,25 @@ export interface MintInvoiceParams {
 export interface LedgerAdapter {
   readonly mode: "live" | "sim";
 
-  /** Faturayı InvoiceToken kontratında bas. */
+  /** Mint the invoice on the InvoiceToken contract. */
   mintInvoice(params: MintInvoiceParams): Promise<{ onchainId: number; txHash: string | null }>;
 
-  /** Müşteri kabulü — financing ön koşulu. */
+  /** Customer acceptance — a precondition for financing. */
   acceptInvoice(onchainId: number): Promise<{ txHash: string | null }>;
 
-  /** Fatura teminatına karşı avans çek. */
+  /** Draw an advance against the invoice collateral. */
   borrow(onchainId: number, amount: string): Promise<{ advance: string; txHash: string | null }>;
 
-  /** Müşteri ödemesi — krediyi atomik kapat. */
+  /** Customer payment — atomically close the loan. */
   repay(onchainId: number, faceValue: string): Promise<{ txHash: string | null }>;
 
-  /** LP havuza likidite yatırır. */
+  /** An LP deposits liquidity into the pool. */
   deposit(lpAddress: string, amount: string): Promise<{ shares: string; txHash: string | null }>;
 
-  /** Havuz istatistikleri. */
+  /** Pool statistics. */
   poolStats(): Promise<PoolStats>;
 
-  /** Çok-para-birimli ödeme için path-payment teklifi/oluşturma. */
+  /** Build/quote a path payment for a multi-currency payment. */
   buildPathPayment(params: {
     sourceAsset: string;
     destAsset: string;
@@ -44,7 +44,7 @@ export interface LedgerAdapter {
     destAddress: string;
   }): Promise<PathPaymentQuote>;
 
-  /** Programlanabilir maaş akışı oluştur (escrow). */
+  /** Create a programmable payroll stream (escrow). */
   createStream(params: {
     employer: string;
     employee: string;
@@ -52,9 +52,9 @@ export interface LedgerAdapter {
     durationSeconds: number;
   }): Promise<{ streamId: number; txHash: string | null }>;
 
-  /** Akış durumunu + hak ediş bilgisini oku. */
+  /** Read the stream status + vesting information. */
   getStream(streamId: number): Promise<StreamView>;
 
-  /** Çalışan hak edilen kısmı çeker. */
+  /** The employee withdraws the vested portion. */
   withdrawStream(streamId: number): Promise<{ amount: string; txHash: string | null }>;
 }

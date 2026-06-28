@@ -15,15 +15,15 @@ interface SimStream {
 }
 
 /**
- * SimLedger — LendingPool/InvoiceToken kontrat mantığının yerel aynası.
- * Canlı ağ olmadan tüm financing akışını gösterir; matematik kontratla aynıdır.
+ * SimLedger — a local mirror of the LendingPool/InvoiceToken contract logic.
+ * Demonstrates the entire financing flow without a live network; the math matches the contract.
  * Author: Can Sarıhan
  */
 export class SimLedger implements LedgerAdapter {
   readonly mode = "sim" as const;
 
   private counter = 0;
-  private liquidity = toStroops("100000"); // demo için tohum likidite: 100k USDC
+  private liquidity = toStroops("100000"); // seed liquidity for the demo: 100k USDC
   private borrowed = 0n;
   private loans = new Map<number, { principal: bigint; faceValue: bigint }>();
   private streamCounter = 0;
@@ -53,7 +53,7 @@ export class SimLedger implements LedgerAdapter {
     const loan = this.loans.get(onchainId);
     if (!loan) throw new Error("LoanNotFound");
     const fee = applyBps(loan.faceValue, config.pool.feeBps);
-    // anapara serbest, fee havuzda kalır -> LP yield
+    // principal is freed, the fee stays in the pool -> LP yield
     this.borrowed -= loan.principal;
     this.liquidity += fee;
     this.loans.delete(onchainId);
@@ -83,9 +83,9 @@ export class SimLedger implements LedgerAdapter {
     destAsset: string;
     destAmount: string;
   }): Promise<PathPaymentQuote> {
-    // Sim modunda FX'i 1:1 + %0.1 temsili spread ile modelle.
+    // In sim mode, model FX as 1:1 plus a representative 0.1% spread.
     const dest = toStroops(params.destAmount);
-    const send = dest + applyBps(dest, 10); // ~%0.1
+    const send = dest + applyBps(dest, 10); // ~0.1%
     return {
       sourceAsset: params.sourceAsset,
       destAsset: params.destAsset,

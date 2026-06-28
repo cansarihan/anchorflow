@@ -1,5 +1,5 @@
 /**
- * AnchorFlow ortak tipleri. Author: Can Sarıhan
+ * AnchorFlow shared types. Author: Can Sarıhan
  */
 
 export type InvoiceStatus =
@@ -11,15 +11,15 @@ export type InvoiceStatus =
 
 export interface Invoice {
   id: string; // off-chain UUID
-  onchainId: number | null; // InvoiceToken kontratındaki id
-  issuerAddress: string; // freelancer Stellar adresi
+  onchainId: number | null; // id in the InvoiceToken contract
+  issuerAddress: string; // freelancer's Stellar address
   payerEmail: string | null;
   payerAddress: string | null;
-  amount: string; // tam birim, string (örn. "1000.00")
-  asset: string; // settlement varlığı kodu (örn. "USDC")
-  dueDate: string; // ISO tarih
+  amount: string; // whole units, string (e.g. "1000.00")
+  asset: string; // settlement asset code (e.g. "USDC")
+  dueDate: string; // ISO date
   status: InvoiceStatus;
-  docHash: string; // off-chain belge hash'i (hex, 32 byte)
+  docHash: string; // off-chain document hash (hex, 32 bytes)
   payLink: string;
   createdAt: string;
 }
@@ -27,8 +27,8 @@ export interface Invoice {
 export interface Loan {
   invoiceId: string;
   borrower: string;
-  principal: string; // ödenen avans
-  faceValue: string; // fatura tutarı
+  principal: string; // advance paid out
+  faceValue: string; // invoice amount
   status: "Active" | "Repaid" | "Defaulted";
   txHash: string | null;
 }
@@ -48,7 +48,7 @@ export interface StreamView {
   vested: string;
   withdrawable: string;
   status: "Active" | "Cancelled" | "Completed";
-  startAt: string | null; // ISO (sim modunda UI progress için)
+  startAt: string | null; // ISO (for UI progress in sim mode)
   endAt: string | null;
   txHash: string | null;
 }
@@ -58,5 +58,5 @@ export interface PathPaymentQuote {
   destAsset: string;
   sendAmount: string;
   estimatedDestAmount: string;
-  xdr: string | null; // imzasız işlem zarfı (sim modunda null)
+  xdr: string | null; // unsigned transaction envelope (null in sim mode)
 }

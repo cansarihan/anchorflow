@@ -1,5 +1,5 @@
 #![cfg(test)]
-//! PayrollStream testleri — lineer vesting + token akışı. Author: Can Sarıhan
+//! PayrollStream tests — linear vesting + token streaming. Author: Can Sarıhan
 
 use super::*;
 use soroban_sdk::{testutils::Address as _, testutils::Ledger as _, token, Address, Env};
@@ -33,7 +33,7 @@ fn setup() -> Fx<'static> {
 }
 
 fn new_stream(fx: &Fx) -> u64 {
-    // total 1000, start 100, end 200 (100 ledger'lık akış)
+    // total 1000, start 100, end 200 (a 100-ledger stream)
     fx.client.create_stream(
         &fx.employer,
         &fx.employee,
@@ -49,7 +49,7 @@ fn test_create_escrows_funds() {
     let fx = setup();
     let id = new_stream(&fx);
     let token = token::Client::new(&fx.env, &fx.asset);
-    // İşveren 10000'den 1000 kilitledi.
+    // The employer locked 1000 out of 10000.
     assert_eq!(token.balance(&fx.employer), 9_000_0000000i128);
     assert_eq!(fx.client.get_stream(&id).status, StreamStatus::Active);
 }
@@ -58,12 +58,12 @@ fn test_create_escrows_funds() {
 fn test_linear_vesting() {
     let fx = setup();
     let id = new_stream(&fx);
-    assert_eq!(fx.client.vested(&id), 0); // başlangıçta 0
-    fx.env.ledger().set_sequence_number(150); // yarısı
+    assert_eq!(fx.client.vested(&id), 0); // 0 at the start
+    fx.env.ledger().set_sequence_number(150); // halfway
     assert_eq!(fx.client.vested(&id), 500_0000000i128);
-    fx.env.ledger().set_sequence_number(200); // tamamı
+    fx.env.ledger().set_sequence_number(200); // fully
     assert_eq!(fx.client.vested(&id), 1_000_0000000i128);
-    fx.env.ledger().set_sequence_number(250); // bitiş sonrası tavanlı
+    fx.env.ledger().set_sequence_number(250); // capped after the end
     assert_eq!(fx.client.vested(&id), 1_000_0000000i128);
 }
 
@@ -78,7 +78,7 @@ fn test_withdraw_vested() {
     assert_eq!(w, 500_0000000i128);
     assert_eq!(token.balance(&fx.employee), 500_0000000i128);
 
-    // Bitişte kalanı çek.
+    // Withdraw the remainder at the end.
     fx.env.ledger().set_sequence_number(200);
     assert_eq!(fx.client.withdrawable(&id), 500_0000000i128);
     let w2 = fx.client.withdraw(&id);
@@ -93,10 +93,10 @@ fn test_cancel_splits_funds() {
     let id = new_stream(&fx);
     let token = token::Client::new(&fx.env, &fx.asset);
 
-    fx.env.ledger().set_sequence_number(150); // yarıda iptal
+    fx.env.ledger().set_sequence_number(150); // cancel halfway
     fx.client.cancel(&id);
 
-    // Çalışan hak edilen 500'ü, işveren kalan 500'ü geri alır.
+    // The employee gets the vested 500, the employer gets back the remaining 500.
     assert_eq!(token.balance(&fx.employee), 500_0000000i128);
     assert_eq!(token.balance(&fx.employer), 9_500_0000000i128);
     assert_eq!(fx.client.get_stream(&id).status, StreamStatus::Cancelled);
@@ -121,6 +121,6 @@ fn test_invalid_range() {
 fn test_withdraw_nothing_before_start() {
     let fx = setup();
     let id = new_stream(&fx);
-    // ledger hâlâ 100 (start) -> vested 0 -> çekilecek bir şey yok
+    // ledger is still 100 (start) -> vested 0 -> nothing to withdraw
     fx.client.withdraw(&id);
 }

@@ -28,7 +28,7 @@ import {
  * AnchorFlow REST API. Author: Can Sarıhan
  */
 
-// async handler -> hataları next'e ilet
+// async handler -> forward errors to next()
 const h =
   (fn: (req: Request, res: Response) => Promise<unknown>) =>
   (req: Request, res: Response, next: NextFunction) =>
@@ -70,12 +70,12 @@ const anchorSchema = z.object({
 
 export const router = Router();
 
-// --- sağlık & mod ---
+// --- health & mode ---
 router.get("/health", (_req, res) => {
   res.json({ ok: true, mode: getLedger().mode });
 });
 
-// --- faturalar ---
+// --- invoices ---
 router.post(
   "/invoices",
   h(async (req, res) => {
@@ -114,11 +114,11 @@ router.post(
   }),
 );
 
-// --- ödeme (müşteri tarafı) ---
+// --- payment (customer side) ---
 router.get(
   "/pay/:id",
   h(async (req, res) => {
-    // Müşterinin gördüğü ödeme detayları.
+    // Payment details as seen by the customer.
     const invoice = getInvoice(String(req.params.id));
     res.json({
       invoiceId: invoice.id,
@@ -146,7 +146,7 @@ router.post(
   }),
 );
 
-// --- likidite havuzu ---
+// --- liquidity pool ---
 router.get(
   "/pool/stats",
   h(async (_req, res) => {
@@ -162,7 +162,7 @@ router.post(
   }),
 );
 
-// --- maaş akışı (payroll streaming) ---
+// --- payroll streaming ---
 router.post(
   "/streams",
   h(async (req, res) => {

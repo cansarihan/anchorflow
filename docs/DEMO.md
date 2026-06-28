@@ -1,17 +1,17 @@
 # AnchorFlow — Demo Runbook
 
-Jüri/sunum için adım adım demo. **Author: Can Sarıhan.**
+A step-by-step demo for judges/presentation. **Author: Can Sarıhan.**
 
-İki seçenek: **(A) 90 saniyelik UI demosu** (sim modu, her ortamda çalışır) ve
-**(B) Canlı testnet demosu** (zincirde gerçek işlem).
+Two options: **(A) 90-second UI demo** (sim mode, works in any environment) and
+**(B) Live testnet demo** (real on-chain transactions).
 
 ---
 
-## A) 90 saniyelik UI demosu (sim modu)
+## A) 90-second UI demo (sim mode)
 
-### Hazırlık (tek seferlik)
+### Setup (one-time)
 ```bash
-# Terminal 1 — backend (sim modu, kontrat adresi gerekmez)
+# Terminal 1 — backend (sim mode, no contract address needed)
 cd packages/backend && npm install && PORT=3001 npm run dev
 
 # Terminal 2 — frontend
@@ -19,52 +19,54 @@ cd packages/frontend && npm install && npm run dev
 # http://localhost:3000
 ```
 
-### Anlatı + tıklamalar
-> "Lagos'taki bir freelancer, Berlin'deki müşterisine 1.000 USDC fatura kesiyor."
+### Narrative + clicks
+> "A freelancer in Lagos issues a 1,000 USDC invoice to their client in Berlin."
 
-1. **`/invoice`** — sağ üstten bir G… adresi bağla (freelancer). Tutar `1000`,
-   vade seç, **Fatura oluştur.** → Liste'de `Pending` fatura + ödeme link'i belirir.
+1. **`/invoice`** — connect a G… address from the top right (freelancer). Amount
+   `1000`, pick a due date, **Create invoice.** → A `Pending` invoice + payment
+   link appears in the list.
 
-2. **Kabul (demo)** butonu → fatura `Accepted`. *(Gerçekte müşteri ödeme
-   link'inden onaylar.)*
+2. **Accept (demo)** button → invoice `Accepted`. *(In reality, the client
+   approves from the payment link.)*
 
-> "60 gün beklemek yerine faturasını tokenize edip pool'dan anında avans çekiyor."
+> "Instead of waiting 60 days, they tokenize the invoice and draw an instant advance from the pool."
 
-3. **Avans çek** → fatura `Financed`. (Backend `borrow` çağırır, %85 = 850 USDC.)
+3. **Draw advance** → invoice `Financed`. (The backend calls `borrow`, 85% = 850 USDC.)
 
-4. **`/pool`** — havuzu göster: kullanım %8.5'e çıktı, kredilerde 850 USDC.
+4. **`/pool`** — show the pool: utilization rose to 8.5%, 850 USDC in loans.
 
-> "60 gün sonra müşteri ödediğinde, akıllı sözleşme krediyi otomatik kapatıyor."
+> "60 days later, when the client pays, the smart contract closes the loan automatically."
 
-5. **`/pay/<id>`** (ödeme link'i) — müşteri **EURC** seçer, **Kur teklifi al**
-   (path-payment: ~1001 EURC → 1000 USDC, DEX üzerinden FX), sonra **Öde.**
-   → "Ödeme alındı — kredi otomatik kapatıldı ✓".
+5. **`/pay/<id>`** (payment link) — the client picks **EURC**, **Get a quote**
+   (path-payment: ~1001 EURC → 1000 USDC, FX over the DEX), then **Pay.**
+   → "Payment received — loan closed automatically ✓".
 
-6. **`/pool`** tekrar — likidite **10.020**'ye çıktı: **20 USDC = LP yield.**
+6. **`/pool`** again — liquidity rose to **10,020**: **20 USDC = LP yield.**
 
-7. **`/cashout`** — freelancer USDC'sini yerel nakde çevirir: **Off-ramp başlat**
-   (anchor SEP-24 withdraw) → **Bankaya gönderildi** → `Tamamlandı`.
-   *"Anchor'lar bunu gerçek para yapan, başka zincirde olmayan parça."*
+7. **`/cashout`** — the freelancer converts their USDC to local cash: **Start
+   off-ramp** (anchor SEP-24 withdraw) → **Sent to bank** → `Completed`.
+   *"Anchors are the part that makes this real money, the piece that exists on no other chain."*
 
-> "Tek bir bankaya, tek bir SWIFT mesajına dokunmadan."
+> "Without touching a single bank or a single SWIFT message."
 
-**Tam döngü:** öde al (path-payment) → faturanı finance et → yerel nakde çevir
-(anchor) → LP gerçek yield kazanır.
+**Full loop:** get paid (path-payment) → finance your invoice → convert to local
+cash (anchor) → the LP earns real yield.
 
-### Bonus: programlanabilir maaş akışı (`/payroll`)
+### Bonus: programmable payroll streaming (`/payroll`)
 
-> "Dağıtık ekipler için maaş, ay sonunu beklemeden saniye saniye akar."
+> "For distributed teams, payroll streams second by second without waiting for month-end."
 
-8. **`/payroll`** — çalışan adresi + tutar + süre gir, **Akış oluştur** (tutar
-   kontrata escrow edilir). **Vesting progress bar** canlı dolar; çalışan istediği
-   an **Hak edileni çek** ile çeker. İşveren iptal ederse fonlar adil bölünür.
+8. **`/payroll`** — enter the employee address + amount + duration, **Create
+   stream** (the amount is escrowed into the contract). The **vesting progress
+   bar** fills live; the employee withdraws at any time with **Withdraw earned**.
+   If the employer cancels, funds split fairly.
 
 ---
 
-## B) Canlı testnet demosu (zincirde gerçek)
+## B) Live testnet demo (real on chain)
 
-Kontratlar zaten deploy ve doğrulanmış (bkz. `DEPLOYMENT.md`). Akışı zincirde
-yeniden göstermek için:
+The contracts are already deployed and verified (see `DEPLOYMENT.md`). To replay
+the flow on chain:
 
 ```bash
 cd contracts
@@ -74,37 +76,37 @@ ASSET=CAW4MGEAUUFXCMU4TBBBKKNRFAOIELDIROL6ZJNOM6JDBECAOSUE2354
 FREELANCER=$(stellar keys address af-freelancer)
 PAYER=$(stellar keys address af-payer)
 
-# Yeni fatura bas (issuer=freelancer, payer=payer), id'yi not al
+# Mint a new invoice (issuer=freelancer, payer=payer), note the id
 stellar contract invoke --id $INVOICE --source af-freelancer --network testnet --send=yes -- \
   mint --issuer $FREELANCER --payer $PAYER --amount 5000000000 \
   --asset $ASSET --due_ledger 6000000 --doc_hash $(printf 'bb%.0s' {1..32})
 
-# Kabul (müşteri) — id'yi yukarıdan koy
+# Accept (client) — put the id from above
 stellar contract invoke --id $INVOICE --source af-payer --network testnet --send=yes -- accept --id <ID>
 
-# Avans çek (freelancer)
+# Draw advance (freelancer)
 stellar contract invoke --id $POOL --source af-freelancer --network testnet --send=yes -- borrow --invoice_id <ID>
 
-# Müşteri öder — kredi atomik kapanır
+# Client pays — loan closes atomically
 stellar contract invoke --id $POOL --source af-payer --network testnet --send=yes -- repay --payer $PAYER --invoice_id <ID>
 
-# Havuz durumunu göster (fee = LP yield kadar büyür)
+# Show pool state (fee grows by the LP yield)
 stellar contract invoke --id $POOL --source anchorflow --network testnet -- pool_stats
 ```
 
-Her işlemden sonra **stellar.expert** explorer link'i çıkar — jüriye gerçek
-transfer event'lerini canlı gösterebilirsin.
+After each transaction, a **stellar.expert** explorer link is printed — you can
+show the judges the real transfer events live.
 
 ---
 
-## Konuşma noktaları (jüri soruları için)
+## Talking points (for judge questions)
 
-- **"Fatura sahte olabilir mi?"** → MVP'de `doc_hash` belgeyi zincire bağlar +
-  müşteri `accept` imzası financing ön koşuludur. Milestone 3: e-imza, müşteri
-  attestation, oracle doğrulama.
-- **"LP parası güvende mi?"** → `repay` tek transaction'da atomik: anapara serbest,
-  fee LP'ye, kalan freelancer'a. Çifte-financing token `status`'ü ile kontratta
-  engellenir. 10/10 test + canlı testnet ile kanıtlı.
-- **"Neden Stellar?"** → Anchor + path payments + DEX + Soroban tek yığında.
-  Anchor'lar bunu "gerçek para" yapan, başka zincirde olmayan parça.
-- **"Gelir nereden?"** → financing iskonto spread'i + LP yield payı + işlem ücreti.
+- **"Could the invoice be fake?"** → In the MVP, `doc_hash` binds the document to
+  the chain + the client `accept` signature is a financing precondition.
+  Milestone 3: e-signature, client attestation, oracle verification.
+- **"Is the LP's money safe?"** → `repay` is atomic in a single transaction:
+  principal released, fee to the LP, remainder to the freelancer. Double-financing
+  is prevented in the contract via the token `status`. Proven by 10/10 tests + live testnet.
+- **"Why Stellar?"** → Anchor + path payments + DEX + Soroban in a single stack.
+  Anchors are the part that makes this "real money," the piece that exists on no other chain.
+- **"Where does revenue come from?"** → Financing discount spread + a share of LP yield + transaction fees.

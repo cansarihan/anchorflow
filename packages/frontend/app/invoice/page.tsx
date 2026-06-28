@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api, type Invoice } from "../lib/api";
 import { getAccount } from "../lib/wallet";
 
-/** Freelancer paneli. Author: Can Sarıhan */
+/** Freelancer dashboard. Author: Can Sarıhan */
 export default function InvoicePage() {
   const [account, setAccount] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -56,9 +56,9 @@ export default function InvoicePage() {
   if (!account) {
     return (
       <div className="card">
-        <h2>Cüzdan bağlı değil</h2>
+        <h2>Wallet not connected</h2>
         <p className="hint">
-          Devam etmek için sağ üstten bir Stellar adresi bağla (G… ile başlar).
+          To continue, connect a Stellar address from the top right (starts with G…).
         </p>
       </div>
     );
@@ -67,17 +67,17 @@ export default function InvoicePage() {
   return (
     <div>
       <div className="card">
-        <h2>Yeni fatura</h2>
+        <h2>New invoice</h2>
         <p className="hint">
-          Fatura on-chain tokenize edilir; müşteri kabul edince avansa uygun olur.
+          The invoice is tokenized on-chain; once the customer accepts it, it becomes eligible for an advance.
         </p>
         <div className="row">
           <div>
-            <label>Tutar (USDC)</label>
+            <label>Amount (USDC)</label>
             <input value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
           <div>
-            <label>Vade</label>
+            <label>Due date</label>
             <input
               type="date"
               value={dueDate}
@@ -85,15 +85,15 @@ export default function InvoicePage() {
             />
           </div>
         </div>
-        <label>Müşteri adresi (opsiyonel)</label>
+        <label>Customer address (optional)</label>
         <input
           placeholder="G…"
           value={payer}
           onChange={(e) => setPayer(e.target.value)}
         />
-        <label>Belge referansı (hash'lenir)</label>
+        <label>Document reference (hashed)</label>
         <input
-          placeholder="sözleşme / iş tanımı"
+          placeholder="contract / statement of work"
           value={ref}
           onChange={(e) => setRef(e.target.value)}
         />
@@ -109,27 +109,27 @@ export default function InvoicePage() {
                   dueDate,
                   documentRef: ref || undefined,
                 }),
-              "Fatura oluşturuldu",
+              "Invoice created",
             )
           }
         >
-          Fatura oluştur
+          Create invoice
         </button>
       </div>
 
       {toast && <div className={`toast ${toast.kind}`}>{toast.msg}</div>}
 
       <div className="card">
-        <h2>Faturalarım</h2>
+        <h2>My invoices</h2>
         <p className="hint">
-          Demo: müşteri kabulünü buradan tetikleyebilir, sonra avans çekebilirsin.
+          Demo: you can trigger the customer acceptance here, then draw an advance.
         </p>
         <table>
           <thead>
             <tr>
-              <th>Tutar</th>
-              <th>Durum</th>
-              <th>Ödeme link'i</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Payment link</th>
               <th></th>
             </tr>
           </thead>
@@ -137,7 +137,7 @@ export default function InvoicePage() {
             {invoices.length === 0 && (
               <tr>
                 <td colSpan={4} className="muted">
-                  Henüz fatura yok.
+                  No invoices yet.
                 </td>
               </tr>
             )}
@@ -161,10 +161,10 @@ export default function InvoicePage() {
                       style={{ marginTop: 0 }}
                       disabled={busy}
                       onClick={() =>
-                        action(() => api.accept(inv.id), "Müşteri kabul etti")
+                        action(() => api.accept(inv.id), "Customer accepted")
                       }
                     >
-                      Kabul (demo)
+                      Accept (demo)
                     </button>
                   )}
                   {inv.status === "Accepted" && (
@@ -173,10 +173,10 @@ export default function InvoicePage() {
                       style={{ marginTop: 0 }}
                       disabled={busy}
                       onClick={() =>
-                        action(() => api.finance(inv.id), "Avans çekildi")
+                        action(() => api.finance(inv.id), "Advance drawn")
                       }
                     >
-                      Avans çek
+                      Draw advance
                     </button>
                   )}
                 </td>

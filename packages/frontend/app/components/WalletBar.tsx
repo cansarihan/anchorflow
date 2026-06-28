@@ -10,7 +10,7 @@ import {
 } from "../lib/wallet";
 
 /**
- * Cüzdan bağlama barı. Freighter denenir; yoksa manuel G... adres girişi.
+ * Wallet connection bar. Tries Freighter; otherwise falls back to manual G... address entry.
  * Author: Can Sarıhan
  */
 export function WalletBar() {
@@ -31,7 +31,7 @@ export function WalletBar() {
           {account.slice(0, 5)}…{account.slice(-4)}
         </span>
         <button className="ghost" style={{ marginTop: 0 }} onClick={disconnect}>
-          Çıkış
+          Disconnect
         </button>
       </div>
     );
@@ -40,7 +40,7 @@ export function WalletBar() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <input
-        placeholder="G… adresi yapıştır"
+        placeholder="Paste G… address"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         style={{ width: 200 }}
@@ -50,13 +50,13 @@ export function WalletBar() {
         disabled={!isValidAddress(input)}
         onClick={() => setAccount(input)}
       >
-        Bağlan
+        Connect
       </button>
       <button
         className="ghost"
         style={{ marginTop: 0 }}
         onClick={() => connectFreighter()}
-        title="Freighter eklentisi varsa"
+        title="If the Freighter extension is installed"
       >
         Freighter
       </button>

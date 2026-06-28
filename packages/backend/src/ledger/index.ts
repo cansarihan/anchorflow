@@ -4,7 +4,7 @@ import { SimLedger } from "./sim.js";
 import { SorobanLedger } from "./soroban.js";
 
 /**
- * Yapılandırmaya göre canlı veya sim ledger seç. Author: Can Sarıhan
+ * Select the live or sim ledger based on configuration. Author: Can Sarıhan
  */
 let instance: LedgerAdapter | null = null;
 
@@ -12,9 +12,9 @@ export function getLedger(): LedgerAdapter {
   if (!instance) {
     instance = isLiveMode() ? new SorobanLedger() : new SimLedger();
     console.log(
-      `[ledger] mod: ${instance.mode}` +
+      `[ledger] mode: ${instance.mode}` +
         (instance.mode === "sim"
-          ? " (kontrat adresleri/imza ayarlanmadı — yerel demo)"
+          ? " (contract addresses/signing not configured — local demo)"
           : ` (network: ${config.network.rpcUrl})`),
     );
   }

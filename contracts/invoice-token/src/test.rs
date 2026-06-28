@@ -1,5 +1,5 @@
 #![cfg(test)]
-//! InvoiceToken birim testleri — Author: Can Sarıhan
+//! InvoiceToken unit tests — Author: Can Sarıhan
 
 use super::*;
 use soroban_sdk::{
@@ -86,6 +86,6 @@ fn test_financed_requires_accepted() {
     let pool = Address::generate(&env);
     client.set_pool(&pool);
     let (id, _, _, _) = sample_invoice(&env, &client);
-    // accept atlandı — Pending'den direkt financed olmaz
+    // accept skipped — cannot go directly from Pending to financed
     client.mark_financed(&id);
 }

@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 
 /**
- * SEP-24 anchor simülatörü — yerel fiat off-ramp/on-ramp köprüsünü temsil eder.
- * Gerçek anchor entegrasyonu Milestone 2; burada akış uçtan uca gösterilebilsin
- * diye interaktif deposit/withdraw süreci taklit edilir. Author: Can Sarıhan
+ * SEP-24 anchor simulator — represents a local fiat off-ramp/on-ramp bridge.
+ * Real anchor integration is Milestone 2; here the interactive deposit/withdraw
+ * process is mimicked so the flow can be shown end to end. Author: Can Sarıhan
  */
 
 export type AnchorTxKind = "deposit" | "withdraw";
@@ -26,7 +26,7 @@ export interface AnchorTransaction {
 
 const txs = new Map<string, AnchorTransaction>();
 
-/** SEP-24 interaktif akış başlat (deposit = on-ramp, withdraw = off-ramp). */
+/** Start the SEP-24 interactive flow (deposit = on-ramp, withdraw = off-ramp). */
 export function startInteractive(params: {
   kind: AnchorTxKind;
   asset: string;
@@ -48,7 +48,7 @@ export function startInteractive(params: {
   return tx;
 }
 
-/** Banka/mobil para tarafı tamamlandı — off-ramp/on-ramp biti. */
+/** The bank/mobile-money side is done — off-ramp/on-ramp completed. */
 export function completeInteractive(id: string): AnchorTransaction {
   const tx = txs.get(id);
   if (!tx) throw new Error("AnchorTxNotFound");

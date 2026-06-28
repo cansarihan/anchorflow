@@ -1,8 +1,8 @@
 import type { Invoice, Loan } from "./types.js";
 
 /**
- * MVP için in-memory veri deposu. Repository deseni sayesinde sonradan
- * PostgreSQL'e geçiş arayüzü değiştirmeden yapılabilir.
+ * In-memory data store for the MVP. Thanks to the repository pattern, a later
+ * migration to PostgreSQL can be done without changing the interface.
  * Author: Can Sarıhan
  */
 

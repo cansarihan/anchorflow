@@ -1,16 +1,16 @@
 #![no_std]
 //! AnchorFlow — LendingPool
 //!
-//! Doğrulanmış faturalara (InvoiceToken) karşı anında avans veren permissionless
-//! havuz. Likidite sağlayıcılar (LP) USDC yatırır, gerçek nakit-akışı destekli
-//! yield kazanır. Müşteri faturayı ödediğinde kredi tek transaction içinde
-//! atomik olarak kapanır — off-chain receivable, on-chain credit'e karşı
-//! deterministik settle olur.
+//! A permissionless pool that provides instant advances against verified
+//! invoices (InvoiceToken). Liquidity providers (LPs) deposit USDC and earn
+//! yield backed by real cash flow. When the customer pays the invoice, the
+//! loan closes atomically within a single transaction — the off-chain
+//! receivable settles deterministically against the on-chain credit.
 //!
-//! MVP basitleştirmeleri:
-//!  - Tek varlık (USDC testnet), tek havuz.
-//!  - Düz iskonto faiz modeli (`fee_bps`), oracle/FX riski yok.
-//!  - Default: basit işaretleme; tam likidasyon Milestone 3.
+//! MVP simplifications:
+//!  - Single asset (USDC testnet), single pool.
+//!  - Flat discount interest model (`fee_bps`), no oracle/FX risk.
+//!  - Default: simple marking; full liquidation in Milestone 3.
 //!
 //! Author: Can Sarıhan
 
@@ -19,9 +19,9 @@ use soroban_sdk::{
     BytesN, Env, IntoVal, Symbol,
 };
 
-/// InvoiceToken kontratının durumlarının yerel aynası. Soroban tipleri yapısal
-/// olarak (XDR) kodlandığı için, bu ayna kontratlar arası çağrıda birebir
-/// eşleşir — böylece deploy edilen wasm'da sembol çakışması olmaz.
+/// Local mirror of the InvoiceToken contract's statuses. Because Soroban types
+/// are encoded structurally (XDR), this mirror matches exactly in cross-contract
+/// calls — so there is no symbol clash in the deployed wasm.
 #[contracttype]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Status {
@@ -32,7 +32,7 @@ pub enum Status {
     Defaulted = 4,
 }
 
-/// InvoiceToken `Invoice` yapısının yerel aynası (cross-contract decode için).
+/// Local mirror of the InvoiceToken `Invoice` struct (for cross-contract decode).
 #[contracttype]
 #[derive(Clone)]
 pub struct Invoice {
@@ -67,21 +67,21 @@ pub struct Loan {
 #[contracttype]
 pub enum DataKey {
     Admin,
-    /// USDC (SAC) varlık kontrat adresi.
+    /// USDC (SAC) asset contract address.
     Asset,
-    /// InvoiceToken kontrat adresi.
+    /// InvoiceToken contract address.
     InvoiceContract,
-    /// Avans oranı, basis points (8500 = %85).
+    /// Advance ratio, basis points (8500 = 85%).
     AdvanceRatio,
-    /// Financing iskonto/faiz, basis points.
+    /// Financing discount/interest, basis points.
     FeeBps,
-    /// Toplam yatırılan likidite.
+    /// Total deposited liquidity.
     TotalLiquidity,
-    /// Şu an kredilerde kilitli anapara.
+    /// Principal currently locked in loans.
     TotalBorrowed,
-    /// LP -> pay (share) miktarı.
+    /// LP -> share amount.
     Shares(Address),
-    /// Toplam pay arzı.
+    /// Total share supply.
     TotalShares,
     /// invoice_id -> Loan
     Loan(u64),
@@ -109,7 +109,7 @@ pub struct LendingPool;
 
 #[contractimpl]
 impl LendingPool {
-    /// Havuzu başlat.
+    /// Initialize the pool.
     pub fn init(
         env: Env,
         admin: Address,
@@ -133,7 +133,7 @@ impl LendingPool {
         Ok(())
     }
 
-    /// LP likidite yatırır, karşılığında pay alır.
+    /// An LP deposits liquidity and receives shares in return.
     pub fn deposit(env: Env, lp: Address, amount: i128) -> Result<i128, Error> {
         lp.require_auth();
         if amount <= 0 {
@@ -147,7 +147,7 @@ impl LendingPool {
         let total_liq = Self::total_liquidity(&env);
         let total_shares = Self::get_i128(&env, &DataKey::TotalShares);
 
-        // İlk yatırımda 1:1; sonra mevcut havuz değerine orantılı.
+        // 1:1 on the first deposit; afterwards proportional to current pool value.
         let minted = if total_shares == 0 || total_liq == 0 {
             amount
         } else {
@@ -163,7 +163,7 @@ impl LendingPool {
         Ok(minted)
     }
 
-    /// LP paylarını bozdurup likidite çeker.
+    /// An LP redeems shares and withdraws liquidity.
     pub fn withdraw(env: Env, lp: Address, shares: i128) -> Result<i128, Error> {
         lp.require_auth();
         if shares <= 0 {
@@ -194,8 +194,8 @@ impl LendingPool {
         Ok(amount)
     }
 
-    /// Kabul edilmiş bir faturaya karşı avans çek.
-    /// Faturayı `Financed` yapar ve `advance_ratio` kadarını borrower'a öder.
+    /// Draw an advance against an accepted invoice.
+    /// Sets the invoice to `Financed` and pays `advance_ratio` of it to the borrower.
     pub fn borrow(env: Env, invoice_id: u64) -> Result<i128, Error> {
         if env.storage().persistent().has(&DataKey::Loan(invoice_id)) {
             return Err(Error::LoanExists);
@@ -218,7 +218,7 @@ impl LendingPool {
             return Err(Error::InsufficientLiquidity);
         }
 
-        // Faturayı teminat olarak kilitle (cross-contract, pool yetkisiyle).
+        // Lock the invoice as collateral (cross-contract, with pool authority).
         Self::invoice_mark_financed(&env, &invoice_contract, invoice_id);
 
         let loan = Loan {
@@ -238,8 +238,9 @@ impl LendingPool {
         Ok(principal)
     }
 
-    /// Müşteri faturayı öder; kredi atomik kapanır.
-    /// Anapara + fee havuza, kalan (face - anapara) borrower'a; fee LP yield olur.
+    /// The customer pays the invoice; the loan closes atomically.
+    /// Principal + fee go to the pool, the remainder (face - principal) to the
+    /// borrower; the fee becomes LP yield.
     pub fn repay(env: Env, payer: Address, invoice_id: u64) -> Result<(), Error> {
         payer.require_auth();
         let mut loan: Loan = env
@@ -252,10 +253,10 @@ impl LendingPool {
         }
 
         let token = token::Client::new(&env, &Self::asset(&env));
-        // Müşteri faturanın tam değerini havuza öder.
+        // The customer pays the full face value of the invoice to the pool.
         token.transfer(&payer, &env.current_contract_address(), &loan.face_value);
 
-        // Borrower'a fatura değerinin kalanı (face - principal) eksi fee verilir.
+        // The borrower receives the remainder of the invoice value (face - principal) minus the fee.
         let fee_bps = Self::get_u32(&env, &DataKey::FeeBps) as i128;
         let fee = loan.face_value * fee_bps / BPS_DENOMINATOR;
         let remainder = loan.face_value - loan.principal - fee;
@@ -264,7 +265,7 @@ impl LendingPool {
             token.transfer(&env.current_contract_address(), &loan.borrower, &remainder);
         }
 
-        // Anapara serbest; fee havuzda kalır → LP yield (TotalLiquidity artar).
+        // Principal freed; fee stays in the pool → LP yield (TotalLiquidity increases).
         let borrowed = Self::get_i128(&env, &DataKey::TotalBorrowed);
         Self::set_i128(&env, &DataKey::TotalBorrowed, borrowed - loan.principal);
         let total_liq = Self::total_liquidity(&env);
@@ -279,7 +280,7 @@ impl LendingPool {
         Ok(())
     }
 
-    /// Havuz istatistikleri: (likidite, borçlanan, kullanım_bps).
+    /// Pool statistics: (liquidity, borrowed, utilization_bps).
     pub fn pool_stats(env: Env) -> (i128, i128, u32) {
         let liq = Self::total_liquidity(&env);
         let borrowed = Self::get_i128(&env, &DataKey::TotalBorrowed);
@@ -302,7 +303,7 @@ impl LendingPool {
         Self::get_shares(&env, &lp)
     }
 
-    // --- cross-contract çağrılar (InvoiceToken) ---
+    // --- cross-contract calls (InvoiceToken) ---
 
     fn invoice_get(env: &Env, contract: &Address, id: u64) -> Invoice {
         env.invoke_contract(
@@ -328,7 +329,7 @@ impl LendingPool {
         );
     }
 
-    // --- iç yardımcılar ---
+    // --- internal helpers ---
 
     fn asset(env: &Env) -> Address {
         env.storage().instance().get(&DataKey::Asset).unwrap()

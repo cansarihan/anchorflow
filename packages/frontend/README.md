@@ -1,35 +1,35 @@
 # AnchorFlow — Frontend
 
-Next.js (App Router) üç panel: freelancer, müşteri ödeme, likidite sağlayıcı.
+A Next.js (App Router) app with three dashboards: freelancer, customer payment, liquidity provider.
 **Author: Can Sarıhan.**
 
-## Sayfalar
+## Pages
 
-| Yol | Panel |
-|-----|-------|
+| Path | Dashboard |
+|------|-----------|
 | `/` | Landing |
-| `/invoice` | Freelancer: fatura oluştur, kabul (demo), avans çek |
-| `/pay/[id]` | Müşteri: kur teklifi + öde (atomik kredi kapanışı) |
-| `/payroll` | Maaş akışı: oluştur (escrow) + canlı vesting + çek |
-| `/cashout` | Anchor off-ramp (SEP-24): USDC'yi yerel nakde çevir |
-| `/pool` | LP: havuz istatistikleri + likidite yatır |
+| `/invoice` | Freelancer: create invoice, accept (demo), draw advance |
+| `/pay/[id]` | Customer: rate quote + pay (atomic loan repayment) |
+| `/payroll` | Payroll stream: create (escrow) + live vesting + withdraw |
+| `/cashout` | Anchor off-ramp (SEP-24): cash out USDC to local money |
+| `/pool` | LP: pool stats + deposit liquidity |
 
-## Çalıştırma
+## Running
 
-Backend'i ayrı çalıştırın (varsayılan `:3001`), sonra:
+Run the backend separately (default `:3001`), then:
 
 ```bash
 npm install
 npm run dev          # http://localhost:3000
 ```
 
-`/api/*` istekleri `BACKEND_URL`'e (varsayılan `http://localhost:3001`)
-yönlendirilir. **Not:** Next.js `rewrites` build sırasında sabitlenir; `npm run
-build` öncesi farklı bir backend için `BACKEND_URL`'i export edin. `npm run dev`
-bu değişkeni başlangıçta okur.
+`/api/*` requests are forwarded to `BACKEND_URL` (default `http://localhost:3001`).
+**Note:** Next.js `rewrites` are baked in at build time; export `BACKEND_URL` for a
+different backend before running `npm run build`. `npm run dev` reads this variable
+at startup.
 
-## Cüzdan
+## Wallet
 
-MVP'de bağlı hesap manuel G… adresi olarak `localStorage`'da tutulur (her
-ortamda çalışan demo). Üretim entegrasyon noktası `app/lib/wallet.ts` →
-`connectFreighter()` içindedir (Freighter / Stellar Wallets Kit).
+In the MVP, the connected account is kept in `localStorage` as a manually entered
+G… address (a demo that works in any environment). The production integration point
+is in `app/lib/wallet.ts` → `connectFreighter()` (Freighter / Stellar Wallets Kit).

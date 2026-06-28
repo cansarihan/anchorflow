@@ -19,12 +19,13 @@ import { config } from "../config.js";
 import { applyBps, fromStroops, toStroops } from "../money.js";
 
 /**
- * SorobanLedger — canlı Stellar/Soroban çağrıları.
+ * SorobanLedger — live Stellar/Soroban calls.
  *
- * Not (MVP): mint/accept/borrow gibi issuer/payer imzası gerektiren çağrılar
- * üretimde client-side (Freighter) imzalanır. Burada demo amaçlı tek bir
- * sunucu anahtarıyla assemble + submit edilir; mimari client-imza eklemeye
- * hazırdır. Author: Can Sarıhan
+ * Note (MVP): calls that require an issuer/payer signature, such as
+ * mint/accept/borrow, are signed client-side (Freighter) in production. Here,
+ * for demo purposes, they are assembled + submitted with a single server key;
+ * the architecture is ready for client-side signing to be added.
+ * Author: Can Sarıhan
  */
 export class SorobanLedger implements LedgerAdapter {
   readonly mode = "live" as const;
@@ -55,7 +56,7 @@ export class SorobanLedger implements LedgerAdapter {
     const prepared = await this.server.prepareTransaction(tx);
     prepared.sign(this.signer);
 
-    // Geçici "TRY_AGAIN_LATER"/"DUPLICATE" durumlarında yeniden gönder.
+    // Resubmit on transient "TRY_AGAIN_LATER"/"DUPLICATE" states.
     let sent = await this.server.sendTransaction(prepared);
     for (let i = 0; i < 5 && sent.status === "TRY_AGAIN_LATER"; i++) {
       await sleep(2000);
@@ -65,7 +66,7 @@ export class SorobanLedger implements LedgerAdapter {
       throw new Error(`tx submit error: ${JSON.stringify(sent.errorResult)}`);
     }
 
-    // Sonucu bekle — testnet onayı birkaç ledger sürebilir (~5 sn/ledger).
+    // Wait for the result — testnet confirmation can take a few ledgers (~5 s/ledger).
     let result = await this.server.getTransaction(sent.hash);
     for (let i = 0; i < 60 && result.status === "NOT_FOUND"; i++) {
       await sleep(1500);
@@ -168,13 +169,13 @@ export class SorobanLedger implements LedgerAdapter {
     sourceAddress: string;
     destAddress: string;
   }): Promise<PathPaymentQuote> {
-    // Klasik Stellar path payment: DEX üzerinden çok-para-birimli settlement.
+    // Classic Stellar path payment: multi-currency settlement via the DEX.
     const horizon = new Horizon.Server(config.network.horizonUrl);
     const source = await horizon.loadAccount(params.sourceAddress);
     const sendAsset = parseAsset(params.sourceAsset);
     const destAsset = parseAsset(params.destAsset);
 
-    // En iyi yolu Horizon'dan al.
+    // Get the best path from Horizon.
     const paths = await horizon
       .strictReceivePaths([sendAsset], destAsset, params.destAmount)
       .call();
@@ -273,11 +274,11 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-/** "USDC:GA..." veya "native" -> Asset */
+/** "USDC:GA..." or "native" -> Asset */
 function parseAsset(spec: string): Asset {
   if (spec === "native" || spec === "XLM") return Asset.native();
   const [code, issuer] = spec.split(":");
-  if (!issuer) throw new Error(`Asset issuer gerekli: ${spec}`);
+  if (!issuer) throw new Error(`Asset issuer required: ${spec}`);
   return new Asset(code, issuer);
 }
 

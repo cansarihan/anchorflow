@@ -6,14 +6,14 @@ import { router } from "./routes.js";
 import { getLedger } from "./ledger/index.js";
 
 /**
- * AnchorFlow backend giriş noktası. Author: Can Sarıhan
+ * AnchorFlow backend entry point. Author: Can Sarıhan
  */
 
 const app = express();
 app.use(express.json());
 app.use("/", router);
 
-// Hata middleware'i
+// Error middleware
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof ZodError) {
     res.status(400).json({ error: "ValidationError", details: err.issues });
@@ -25,7 +25,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ error: message });
 });
 
-// İş kuralı ihlalleri -> 400
+// Business-rule violations -> 400
 const clientErrors = new Set([
   "InvoiceNotFound",
   "InvalidStatus",
@@ -41,13 +41,13 @@ const clientErrors = new Set([
 ]);
 
 export function start() {
-  getLedger(); // mod logla
+  getLedger(); // log the mode
   app.listen(config.port, () => {
     console.log(`[anchorflow] backend http://localhost:${config.port}`);
   });
 }
 
-// Doğrudan çalıştırıldıysa başlat.
+// Start if run directly.
 if (import.meta.url === `file://${process.argv[1]}`) {
   start();
 }

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api, type PoolStats } from "../lib/api";
 import { getAccount } from "../lib/wallet";
 
-/** Likidite sağlayıcı dashboard'u. Author: Can Sarıhan */
+/** Liquidity provider dashboard. Author: Can Sarıhan */
 export default function PoolPage() {
   const [stats, setStats] = useState<PoolStats | null>(null);
   const [account, setAccount] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export default function PoolPage() {
     setToast(null);
     try {
       await api.deposit(account, amount);
-      setToast({ kind: "ok", msg: `${amount} USDC yatırıldı` });
+      setToast({ kind: "ok", msg: `${amount} USDC deposited` });
       await refresh();
     } catch (e) {
       setToast({ kind: "err", msg: (e as Error).message });
@@ -50,22 +50,22 @@ export default function PoolPage() {
   return (
     <div>
       <div className="card">
-        <h2>Likidite havuzu</h2>
+        <h2>Liquidity pool</h2>
         <p className="hint">
-          Havuz, doğrulanmış faturalara karşı avans verir. Getirisi spekülasyon
-          değil, gerçek fatura nakit-akışıdır.
+          The pool advances funds against verified invoices. Its yield is not
+          speculation — it comes from real invoice cash flow.
         </p>
         <div className="stat-grid">
           <div className="stat">
-            <div className="k">Toplam likidite</div>
+            <div className="k">Total liquidity</div>
             <div className="v">{stats?.liquidity ?? "—"}</div>
           </div>
           <div className="stat">
-            <div className="k">Kredilerde</div>
+            <div className="k">In loans</div>
             <div className="v">{stats?.borrowed ?? "—"}</div>
           </div>
           <div className="stat">
-            <div className="k">Kullanım</div>
+            <div className="k">Utilization</div>
             <div className="v">{util}%</div>
           </div>
         </div>
@@ -74,15 +74,15 @@ export default function PoolPage() {
       {toast && <div className={`toast ${toast.kind}`}>{toast.msg}</div>}
 
       <div className="card">
-        <h2>Likidite sağla</h2>
+        <h2>Provide liquidity</h2>
         {!account ? (
-          <p className="hint">Önce sağ üstten cüzdan bağla.</p>
+          <p className="hint">First connect your wallet from the top right.</p>
         ) : (
           <>
-            <label>Tutar (USDC)</label>
+            <label>Amount (USDC)</label>
             <input value={amount} onChange={(e) => setAmount(e.target.value)} />
             <button className="success" disabled={busy} onClick={deposit}>
-              Yatır
+              Deposit
             </button>
           </>
         )}
