@@ -32,6 +32,10 @@ Full pitch: **[`docs/PITCH.md`](docs/PITCH.md)**
 
 ---
 
+## Demo
+
+**[▶ Watch the demo](assets/demo.mp4)** — a 30-second walkthrough of the full flow: issue an invoice, draw an instant advance, get paid via path payment, stream payroll, and cash out through an anchor.
+
 ## Screenshots
 
 | Freelancer — invoices & financing | Customer — pay (multi-currency) |
