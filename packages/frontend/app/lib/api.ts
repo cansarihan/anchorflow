@@ -126,7 +126,36 @@ export const api = {
     req<AnchorTransaction>(`/anchor/transactions/${id}/complete`, {
       method: "POST",
     }),
+
+  createStream: (input: {
+    employer: string;
+    employee: string;
+    total: string;
+    durationSeconds: number;
+  }) =>
+    req<Stream>("/streams", { method: "POST", body: JSON.stringify(input) }),
+
+  getStream: (id: number) => req<Stream>(`/streams/${id}`),
+
+  withdrawStream: (id: number) =>
+    req<{ amount: string; stream: Stream }>(`/streams/${id}/withdraw`, {
+      method: "POST",
+    }),
 };
+
+export interface Stream {
+  id: number;
+  employer: string;
+  employee: string;
+  total: string;
+  withdrawn: string;
+  vested: string;
+  withdrawable: string;
+  status: "Active" | "Cancelled" | "Completed";
+  startAt: string | null;
+  endAt: string | null;
+  txHash: string | null;
+}
 
 export interface AnchorTransaction {
   id: string;

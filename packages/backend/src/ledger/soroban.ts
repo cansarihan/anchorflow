@@ -14,7 +14,7 @@ import {
 } from "@stellar/stellar-sdk";
 
 import type { LedgerAdapter, MintInvoiceParams } from "./types.js";
-import type { PathPaymentQuote, PoolStats } from "../types.js";
+import type { PathPaymentQuote, PoolStats, StreamView } from "../types.js";
 import { config } from "../config.js";
 import { applyBps, fromStroops, toStroops } from "../money.js";
 
@@ -207,6 +207,65 @@ export class SorobanLedger implements LedgerAdapter {
       estimatedDestAmount: params.destAmount,
       xdr: tx.toXDR(),
     };
+  }
+
+  async createStream(params: {
+    employer: string;
+    employee: string;
+    total: string;
+    durationSeconds: number;
+  }) {
+    const latest = await this.server.getLatestLedger();
+    const start = latest.sequence + 1;
+    const end = start + Math.max(1, Math.ceil(params.durationSeconds / 5));
+    const ret = await this.invoke(config.contracts.payrollStream, "create_stream", [
+      new Address(params.employer).toScVal(),
+      new Address(params.employee).toScVal(),
+      new Address(config.contracts.asset).toScVal(),
+      nativeToScVal(toStroops(params.total), { type: "i128" }),
+      nativeToScVal(start, { type: "u32" }),
+      nativeToScVal(end, { type: "u32" }),
+    ]);
+    return { streamId: Number(ret.returnValue), txHash: ret.txHash };
+  }
+
+  async getStream(streamId: number): Promise<StreamView> {
+    const id = nativeToScVal(streamId, { type: "u64" });
+    const s = (await this.simulateRead(
+      config.contracts.payrollStream,
+      "get_stream",
+      [id],
+    )) as Record<string, unknown>;
+    const vested = (await this.simulateRead(
+      config.contracts.payrollStream,
+      "vested",
+      [id],
+    )) as bigint;
+    const withdrawable = (await this.simulateRead(
+      config.contracts.payrollStream,
+      "withdrawable",
+      [id],
+    )) as bigint;
+    return {
+      id: streamId,
+      employer: String(s.employer),
+      employee: String(s.employee),
+      total: fromStroops(s.total as bigint),
+      withdrawn: fromStroops(s.withdrawn as bigint),
+      vested: fromStroops(vested),
+      withdrawable: fromStroops(withdrawable),
+      status: String(s.status) as StreamView["status"],
+      startAt: null,
+      endAt: null,
+      txHash: null,
+    };
+  }
+
+  async withdrawStream(streamId: number) {
+    const ret = await this.invoke(config.contracts.payrollStream, "withdraw", [
+      nativeToScVal(streamId, { type: "u64" }),
+    ]);
+    return { amount: fromStroops(ret.returnValue as bigint), txHash: ret.txHash };
   }
 }
 

@@ -1,4 +1,4 @@
-import type { PathPaymentQuote, PoolStats } from "../types.js";
+import type { PathPaymentQuote, PoolStats, StreamView } from "../types.js";
 
 /**
  * LedgerAdapter — AnchorFlow'un zincir-üstü operasyonlarının soyutlaması.
@@ -43,4 +43,18 @@ export interface LedgerAdapter {
     sourceAddress: string;
     destAddress: string;
   }): Promise<PathPaymentQuote>;
+
+  /** Programlanabilir maaş akışı oluştur (escrow). */
+  createStream(params: {
+    employer: string;
+    employee: string;
+    total: string;
+    durationSeconds: number;
+  }): Promise<{ streamId: number; txHash: string | null }>;
+
+  /** Akış durumunu + hak ediş bilgisini oku. */
+  getStream(streamId: number): Promise<StreamView>;
+
+  /** Çalışan hak edilen kısmı çeker. */
+  withdrawStream(streamId: number): Promise<{ amount: string; txHash: string | null }>;
 }

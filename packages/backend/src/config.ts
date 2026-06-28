@@ -24,6 +24,7 @@ export const config = {
   contracts: {
     invoiceToken: env("INVOICE_CONTRACT_ID"),
     lendingPool: env("LENDING_POOL_ID"),
+    payrollStream: env("PAYROLL_STREAM_ID"),
     asset: env("ASSET_CONTRACT"),
   },
 

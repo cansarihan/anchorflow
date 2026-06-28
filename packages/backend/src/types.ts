@@ -39,6 +39,20 @@ export interface PoolStats {
   utilizationBps: number;
 }
 
+export interface StreamView {
+  id: number;
+  employer: string;
+  employee: string;
+  total: string;
+  withdrawn: string;
+  vested: string;
+  withdrawable: string;
+  status: "Active" | "Cancelled" | "Completed";
+  startAt: string | null; // ISO (sim modunda UI progress için)
+  endAt: string | null;
+  txHash: string | null;
+}
+
 export interface PathPaymentQuote {
   sourceAsset: string;
   destAsset: string;

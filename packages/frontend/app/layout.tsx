@@ -23,6 +23,7 @@ export default function RootLayout({
           </Link>
           <div className="nav-links">
             <Link href="/invoice">Faturalar</Link>
+            <Link href="/payroll">Maaş Akışı</Link>
             <Link href="/cashout">Nakde Çevir</Link>
             <Link href="/pool">Likidite</Link>
           </div>

@@ -14,6 +14,11 @@ import {
 } from "./services/financingService.js";
 import { getLedger } from "./ledger/index.js";
 import {
+  createStream,
+  getStream,
+  withdrawStream,
+} from "./services/payrollService.js";
+import {
   startInteractive,
   completeInteractive,
   getAnchorTx,
@@ -47,6 +52,13 @@ const quoteSchema = z.object({
 const depositSchema = z.object({
   lpAddress: z.string().min(56).max(56),
   amount: z.string().regex(/^\d+(\.\d{1,7})?$/),
+});
+
+const streamSchema = z.object({
+  employer: z.string().min(56).max(56),
+  employee: z.string().min(56).max(56),
+  total: z.string().regex(/^\d+(\.\d{1,7})?$/),
+  durationSeconds: z.number().int().positive(),
 });
 
 const anchorSchema = z.object({
@@ -147,6 +159,29 @@ router.post(
   h(async (req, res) => {
     const { lpAddress, amount } = depositSchema.parse(req.body);
     res.status(201).json(await getLedger().deposit(lpAddress, amount));
+  }),
+);
+
+// --- maaş akışı (payroll streaming) ---
+router.post(
+  "/streams",
+  h(async (req, res) => {
+    const input = streamSchema.parse(req.body);
+    res.status(201).json(await createStream(input));
+  }),
+);
+
+router.get(
+  "/streams/:id",
+  h(async (req, res) => {
+    res.json(await getStream(Number(req.params.id)));
+  }),
+);
+
+router.post(
+  "/streams/:id/withdraw",
+  h(async (req, res) => {
+    res.json(await withdrawStream(Number(String(req.params.id))));
   }),
 );
 

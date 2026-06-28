@@ -35,6 +35,9 @@ const clientErrors = new Set([
   "NotMinted",
   "InsufficientLiquidity",
   "AnchorTxNotFound",
+  "StreamNotFound",
+  "NotActive",
+  "NothingToWithdraw",
 ]);
 
 export function start() {

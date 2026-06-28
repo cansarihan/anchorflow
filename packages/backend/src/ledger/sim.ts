@@ -1,7 +1,18 @@
 import type { LedgerAdapter, MintInvoiceParams } from "./types.js";
-import type { PathPaymentQuote, PoolStats } from "../types.js";
+import type { PathPaymentQuote, PoolStats, StreamView } from "../types.js";
 import { config } from "../config.js";
 import { applyBps, fromStroops, toStroops } from "../money.js";
+
+interface SimStream {
+  id: number;
+  employer: string;
+  employee: string;
+  total: bigint;
+  withdrawn: bigint;
+  startMs: number;
+  endMs: number;
+  status: "Active" | "Cancelled" | "Completed";
+}
 
 /**
  * SimLedger — LendingPool/InvoiceToken kontrat mantığının yerel aynası.
@@ -15,6 +26,8 @@ export class SimLedger implements LedgerAdapter {
   private liquidity = toStroops("100000"); // demo için tohum likidite: 100k USDC
   private borrowed = 0n;
   private loans = new Map<number, { principal: bigint; faceValue: bigint }>();
+  private streamCounter = 0;
+  private streams = new Map<number, SimStream>();
 
   async mintInvoice(_params: MintInvoiceParams) {
     this.counter += 1;
@@ -80,5 +93,69 @@ export class SimLedger implements LedgerAdapter {
       estimatedDestAmount: params.destAmount,
       xdr: null,
     };
+  }
+
+  async createStream(params: {
+    employer: string;
+    employee: string;
+    total: string;
+    durationSeconds: number;
+  }) {
+    this.streamCounter += 1;
+    const now = Date.now();
+    this.streams.set(this.streamCounter, {
+      id: this.streamCounter,
+      employer: params.employer,
+      employee: params.employee,
+      total: toStroops(params.total),
+      withdrawn: 0n,
+      startMs: now,
+      endMs: now + params.durationSeconds * 1000,
+      status: "Active",
+    });
+    return { streamId: this.streamCounter, txHash: null };
+  }
+
+  async getStream(streamId: number): Promise<StreamView> {
+    const s = this.requireStream(streamId);
+    const vested = this.vested(s);
+    return {
+      id: s.id,
+      employer: s.employer,
+      employee: s.employee,
+      total: fromStroops(s.total),
+      withdrawn: fromStroops(s.withdrawn),
+      vested: fromStroops(vested),
+      withdrawable: fromStroops(vested - s.withdrawn),
+      status: s.status,
+      startAt: new Date(s.startMs).toISOString(),
+      endAt: new Date(s.endMs).toISOString(),
+      txHash: null,
+    };
+  }
+
+  async withdrawStream(streamId: number) {
+    const s = this.requireStream(streamId);
+    if (s.status !== "Active") throw new Error("NotActive");
+    const amount = this.vested(s) - s.withdrawn;
+    if (amount <= 0n) throw new Error("NothingToWithdraw");
+    s.withdrawn += amount;
+    if (s.withdrawn >= s.total) s.status = "Completed";
+    return { amount: fromStroops(amount), txHash: null };
+  }
+
+  private vested(s: SimStream): bigint {
+    const now = Date.now();
+    if (now <= s.startMs) return 0n;
+    if (now >= s.endMs) return s.total;
+    const elapsed = BigInt(now - s.startMs);
+    const span = BigInt(s.endMs - s.startMs);
+    return (s.total * elapsed) / span;
+  }
+
+  private requireStream(id: number): SimStream {
+    const s = this.streams.get(id);
+    if (!s) throw new Error("StreamNotFound");
+    return s;
   }
 }

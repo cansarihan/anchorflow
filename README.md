@@ -66,8 +66,8 @@ stellar contract build
 
 ## Test & deploy durumu
 
-- **27/27 test geçiyor** — `contracts/` **16/16** (financing akışı + payroll vesting)
-  + `backend/` **11/11** (money util + sim ledger).
+- **29/29 test geçiyor** — `contracts/` **16/16** (financing akışı + payroll vesting)
+  + `backend/` **13/13** (money util + sim ledger + payroll).
 - **Stellar Testnet'te canlı** ve tam akış zincirde doğrulandı — bkz.
   [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). 1.000 USDC fatura → 850 avans →
   müşteri ödemesi → atomik kapanış → havuz 10.020 (LP yield 20).

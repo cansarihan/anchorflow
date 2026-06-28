@@ -61,6 +61,25 @@ test("yetersiz likiditede borrow hata verir", async () => {
   await assert.rejects(() => l.borrow(onchainId, "200000"), /InsufficientLiquidity/);
 });
 
+test("createStream: aktif akış + escrow toplamı", async () => {
+  const l = new SimLedger();
+  const { streamId } = await l.createStream({
+    employer: ADDR,
+    employee: ADDR,
+    total: "1000",
+    durationSeconds: 3600,
+  });
+  const s = await l.getStream(streamId);
+  assert.equal(s.total, "1000");
+  assert.equal(s.withdrawn, "0");
+  assert.equal(s.status, "Active");
+});
+
+test("getStream: olmayan akış hata verir", async () => {
+  const l = new SimLedger();
+  await assert.rejects(() => l.getStream(999), /StreamNotFound/);
+});
+
 test("path-payment teklifi spread ekler", async () => {
   const l = new SimLedger();
   const q = await l.buildPathPayment({
