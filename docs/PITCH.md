@@ -118,6 +118,25 @@ links: [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ---
 
+## Market & why now
+
+The independent workforce is one of the fastest-growing labor segments on earth — hundreds of millions of cross-border freelancers, contractors, and micro-businesses, expanding every year as remote work becomes the default. The money rails serving them, however, are decades old:
+
+- **Cross-border payments** move well over **$150T** in flows annually, and global **remittances** alone are **~$850B/year** at an average cost of **~6%** (World Bank) — a multi-tens-of-billions tax paid largely by the people who can least afford it.
+- **Invoice financing / factoring** is already a **~$3.5T/year** global market — yet it is gatekept by banks and almost entirely closed to cross-border, self-employed earners whose receivables banks cannot see or price.
+- **Stablecoins** now settle **trillions of dollars** per year, increasingly as real payment rails rather than trading collateral.
+
+**Why now:**
+
+- **Stablecoins crossed from speculation to settlement.** USDC is native on Stellar, and regulatory clarity (MiCA, emerging US stablecoin frameworks) is turning them into compliant money.
+- **RWA tokenization is the dominant 2025–2026 on-chain narrative**, and Stellar is investing heavily in it — invoice receivables are among the most natural real-world assets to bring on-chain.
+- **Stellar's anchor network and SEP standards have matured** enough to make local fiat on/off-ramps real in exactly the regions traditional finance ignores.
+- **Borderless work is now normal**, but its financial infrastructure never caught up. The gap between *verifiable global income* and *accessible global credit* has never been wider — or more addressable.
+
+AnchorFlow sits at the intersection of three accelerating curves: **borderless work, stablecoin settlement, and RWA credit.**
+
+---
+
 ## Business model
 
 - Invoice-financing discount spread (fee_bps),
