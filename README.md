@@ -26,7 +26,12 @@ Invoice link → path-payment settlement → Soroban'da tokenize
             → lending pool'dan anında avans → müşteri ödeyince otomatik kapanış
 ```
 
-Detaylı tasarım: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+## Dokümanlar
+
+- [`docs/PITCH.md`](docs/PITCH.md) — Startup Track submission / pitch
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — sistem mimarisi & tasarım
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — testnet deployment & canlı doğrulama
+- [`docs/DEMO.md`](docs/DEMO.md) — jüri için demo runbook
 
 ## Repo yapısı
 
